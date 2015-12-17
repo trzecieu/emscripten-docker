@@ -1,0 +1,52 @@
+FROM ubuntu:15.10
+MAINTAINER kontakt@trzeci.eu
+
+# SYSTEM
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+RUN apt-get -y update && apt-get install -y \
+	cmake \
+	git-core \
+	build-essential \
+	wget \
+	python \
+	nodejs 
+
+RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
+RUN tar xvzf emsdk-portable.tar.gz
+
+WORKDIR emsdk_portable
+RUN ./emsdk update
+RUN ./emsdk install --build=Release {EMSCRIPTEN_SDK_TAG}
+RUN ./emsdk activate {EMSCRIPTEN_SDK_TAG}
+ENV EMSCRIPTEN=/emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}
+# ENV LLVM=/usr/lib/llvm-3.3/bin
+
+# CLEAN UP
+RUN find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \;
+RUN find . -name "*.o" -exec rm {} \;
+RUN find . -name "*.a" -exec rm {} \;
+RUN rm -rf clang/*/src
+RUN rm -rf emscripten/*/.git
+RUN rm -rf zips
+RUN rm -rf node
+RUN rm -rf emscripten/*/tests
+RUN rm /emsdk-portable.tar.gz
+
+RUN apt-get -y --purge remove \
+	wget \
+	build-essential \
+	gcc \
+	perl
+RUN apt-get -y autoremove
+RUN apt-get clean
+
+# Emscripten requires manual change on Linux to point at right nodejs
+RUN sed -i -e 's/NODE_JS=.*/NODE_JS="nodejs"/g' ~/.emscripten
+RUN for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
+  ln -sf /emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}/$prog /usr/local/bin; done
+
+VOLUME ["/src"]
+WORKDIR /src
+
+RUN emcc --version
