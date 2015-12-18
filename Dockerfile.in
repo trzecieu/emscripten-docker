@@ -46,7 +46,8 @@ RUN find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; && \
 	find . -name "*.a" -exec rm {} \; && \
 	emscripten_version=$(find clang/*/src/emscripten-version.txt) && \
 	mv $emscripten_version emscripten-version.txt && \
-	rm -rf clang/*/src/* && \
+	rm -rf clang/*/src && \ 
+	mkdir -p $(echo dirname $emscripten_version) && \ 
 	mv emscripten-version.txt $emscripten_version && \
 	rm -rf emscripten/*/.git && \
 	rm -rf zips && \
