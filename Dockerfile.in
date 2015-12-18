@@ -17,7 +17,7 @@ RUN tar xvzf emsdk-portable.tar.gz
 
 WORKDIR emsdk_portable
 RUN ./emsdk update && \
-	./emsdk install --build=MinSizeRel --shallow {EMSCRIPTEN_SDK_TAG} && \
+	./emsdk install --build=MinSizeRel {EMSCRIPTEN_SDK_TAG} && \
 	./emsdk activate {EMSCRIPTEN_SDK_TAG}
 
 # SETUP SDK

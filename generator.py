@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import subprocess, datetime
+import subprocess, datetime, sys
 from itertools import repeat
 
 emscripten_git_repo = 'https://github.com/kripken/emscripten/'
@@ -43,7 +43,7 @@ def log(text):
 		myfile.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 	print(text)
 
-def get_builds(tags, b64=False):
+def get_builds(tags, update=False, branches=False, b64=False):
 	builds = []
 
 	for bits in ["32bit"] + (["64bit"] if b64 else []):
@@ -55,18 +55,19 @@ def get_builds(tags, b64=False):
 					"sdk": sdk,
 					"docker_tag": sdk,
 					"docker_name" : docker_hub_repo + ":" + sdk,
-					"update" : False,
+					"update" : update,
 				})
-		for branch in ["incoming", "master"]:
-			sdk = "sdk-" + branch + "-" + bits
-			builds.append({
-				"tag": branch,
-				"dir": branch,
-				"sdk": sdk,
-				"docker_tag": sdk,
-				"docker_name" : docker_hub_repo + ":" + sdk,
-				"update" : True,
-			})
+		if branches:
+			for branch in ["incoming", "master"]:
+				sdk = "sdk-" + branch + "-" + bits
+				builds.append({
+					"tag": branch,
+					"dir": branch,
+					"sdk": sdk,
+					"docker_tag": sdk,
+					"docker_name" : docker_hub_repo + ":" + sdk,
+					"update" : True,
+				})
 
 	return builds
 
@@ -121,7 +122,6 @@ def generate(builds, serverTags):
 		if build["docker_tag"] in serverTags:
 			if build["update"]:
 				log("[INFO] Update tag: " + build["docker_tag"])
-				subprocess.call(["docker", "pull", build["docker_name"]])
 			else:
 				log("[INFO] Not need to create " + build["docker_tag"])
 				continue
@@ -162,7 +162,7 @@ def generate(builds, serverTags):
 tags = get_tags()
 sorted(tags, cmp=version_compare)
 
-builds = get_builds(tags)
+builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "64" in sys.argv)
 pushed_builds = get_server_tags()
 
 
