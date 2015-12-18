@@ -16,37 +16,48 @@ RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscri
 RUN tar xvzf emsdk-portable.tar.gz
 
 WORKDIR emsdk_portable
-RUN ./emsdk update
-RUN ./emsdk install --build=Release {EMSCRIPTEN_SDK_TAG}
-RUN ./emsdk activate {EMSCRIPTEN_SDK_TAG}
+RUN ./emsdk update && \
+	./emsdk install --build=MinSizeRel --shallow {EMSCRIPTEN_SDK_TAG} && \
+	./emsdk activate {EMSCRIPTEN_SDK_TAG}
+
+# SETUP SDK
 ENV EMSCRIPTEN=/emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}
 # ENV LLVM=/usr/lib/llvm-3.3/bin
-
-# CLEAN UP
-RUN find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \;
-RUN find . -name "*.o" -exec rm {} \;
-RUN find . -name "*.a" -exec rm {} \;
-RUN rm -rf clang/*/src
-RUN rm -rf emscripten/*/.git
-RUN rm -rf zips
-RUN rm -rf node
-RUN rm -rf emscripten/*/tests
-RUN rm /emsdk-portable.tar.gz
-
-RUN apt-get -y --purge remove \
-	wget \
-	build-essential \
-	gcc \
-	perl
-RUN apt-get -y autoremove
-RUN apt-get clean
 
 # Emscripten requires manual change on Linux to point at right nodejs
 RUN sed -i -e 's/NODE_JS=.*/NODE_JS="nodejs"/g' ~/.emscripten
 RUN for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
-  ln -sf /emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}/$prog /usr/local/bin; done
+	ln -sf /emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}/$prog /usr/local/bin; done
+
+# TEST AND CACHE
+RUN emcc --version && \
+	mkdir -p /tmp/emscripten_test && pushd /tmp/emscripten_test && \
+	echo "#include <iostream>" > test.cpp && echo "int main() { std::cout<< 0; return 0;}" >> test.cpp && \
+	em++ -O2 test.cpp -o test.js && \
+	nodejs test.js && \
+	popd && \
+	rm -fr /tmp/emscripten_test
+
+# CLEAN UP
+RUN find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; && \
+	find . -name "*.o" -exec rm {} \; && \
+	find . -name "*.a" -exec rm {} \; && \
+	emscripten_version=$(find clang/*/src/emscripten-version.txt) && \
+	mv $emscripten_version emscripten-version.txt && \
+	rm -rf clang/*/src/* && \
+	mv emscripten-version.txt $emscripten_version && \
+	rm -rf emscripten/*/.git && \
+	rm -rf zips && \
+	rm -rf node && \
+	rm -rf emscripten/*/tests && \
+	rm /emsdk-portable.tar.gz
+
+RUN apt-get -y --purge remove wget build-essential gcc perl git-core && \
+	apt-get -y autoremove && \
+	apt-get clean
+
 
 VOLUME ["/src"]
 WORKDIR /src
 
-RUN emcc --version
+
