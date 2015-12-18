@@ -57,7 +57,7 @@ def get_builds(tags, b64=False):
 					"docker_name" : docker_hub_repo + ":" + sdk,
 					"update" : False,
 				})
-		for branch in ["master", "incoming"]:
+		for branch in ["incoming", "master"]:
 			sdk = "sdk-" + branch + "-" + bits
 			builds.append({
 				"tag": branch,

@@ -32,8 +32,9 @@ RUN for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emsco
 # TEST AND CACHE
 RUN emcc --version && \
 	mkdir -p /tmp/emscripten_test && pushd /tmp/emscripten_test && \
-	echo "#include <iostream>" > test.cpp && echo "int main() { std::cout<< 0; return 0;}" >> test.cpp && \
+	echo "#include <iostream>" > test.cpp && echo 'int main() { std::cout<< "HELLO" << std::endl; return 0;}' >> test.cpp && \
 	em++ -O2 test.cpp -o test.js && \
+	em++ test.cpp -o test.js && \
 	nodejs test.js && \
 	popd && \
 	rm -fr /tmp/emscripten_test
