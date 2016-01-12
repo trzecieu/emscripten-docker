@@ -12,8 +12,8 @@ RUN apt-get -y update && apt-get install -y \
 	python \
 	nodejs 
 
-RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
-	tar xvzf emsdk-portable.tar.gz
+RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
+RUN tar xvzf emsdk-portable.tar.gz
 
 WORKDIR emsdk_portable
 RUN ./emsdk update && \
