@@ -1,4 +1,4 @@
-FROM ubuntu:15.10
+FROM debian:jessie
 MAINTAINER kontakt@trzeci.eu
 
 # SYSTEM
@@ -12,13 +12,12 @@ RUN apt-get -y update && apt-get install -y \
 	python \
 	nodejs 
 
-RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
-RUN tar xvzf emsdk-portable.tar.gz
+RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
+	tar xvzf emsdk-portable.tar.gz
 
 WORKDIR emsdk_portable
 RUN ./emsdk update && \
-	sed -i -e 's/"os": "unix"/"os": "linux"/g' emsdk_manifest.json  && \
-	./emsdk install --build=MinSizeRel {EMSCRIPTEN_SDK_TAG} && \
+	./emsdk install --build=MinSizeRel --shallow {EMSCRIPTEN_SDK_TAG} && \
 	./emsdk activate {EMSCRIPTEN_SDK_TAG}
 
 # SETUP SDK
