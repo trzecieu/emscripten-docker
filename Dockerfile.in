@@ -8,15 +8,12 @@ RUN apt-get -y update && apt-get install -y \
 	cmake \
 	git-core \
 	build-essential \
-	wget \
 	python \
 	nodejs 
 
-RUN wget -c --no-check-certificate https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
-RUN tar xvzf emsdk-portable.tar.gz
-
-WORKDIR emsdk_portable
-RUN ./emsdk update && \
+RUN git clone --depth 1 https://github.com/juj/emsdk.git emsdk_portable && \
+	cd emsdk_portable && \
+	./emsdk update && \
 	./emsdk install --build=MinSizeRel --shallow {EMSCRIPTEN_SDK_TAG} && \
 	./emsdk activate {EMSCRIPTEN_SDK_TAG}
 
@@ -54,7 +51,7 @@ RUN find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; && \
 	rm -rf emscripten/*/tests && \
 	rm /emsdk-portable.tar.gz
 
-RUN apt-get -y --purge remove wget build-essential gcc perl git-core && \
+RUN apt-get -y --purge remove build-essential gcc perl git-core && \
 	apt-get -y autoremove && \
 	apt-get clean
 
