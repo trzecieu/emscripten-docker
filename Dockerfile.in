@@ -13,8 +13,9 @@ RUN apt-get -y update && apt-get install -y \
 
 RUN git clone --depth 1 https://github.com/juj/emsdk.git emsdk_portable && \
 	cd emsdk_portable && \
+	rm -fr .git && \
 	./emsdk update && \
-	./emsdk install --build=MinSizeRel --shallow {EMSCRIPTEN_SDK_TAG} && \
+	./emsdk install --build=MinSizeRel {EMSCRIPTEN_SDK_TAG} && \
 	./emsdk activate {EMSCRIPTEN_SDK_TAG}
 
 # SETUP SDK
