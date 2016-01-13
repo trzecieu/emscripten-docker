@@ -5,7 +5,7 @@ from itertools import repeat
 
 emscripten_git_repo = 'https://github.com/kripken/emscripten/'
 docker_hub_repo = "trzeci/emscripten"
-minimum_version = "1.34.1"
+minimum_version = "1.35.0"
 
 def is_version_at_least(ver, target):
 	ver = ver.split('.')
