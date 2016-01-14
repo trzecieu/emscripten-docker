@@ -9,7 +9,6 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	cd emsdk_portable \
 &&	rm -fr .git \
 &&	rm -fr bin \
-&&	./emsdk update \
 &&	./emsdk install --build=MinSizeRel {EMSCRIPTEN_SDK_TAG} \
 &&	./emsdk activate {EMSCRIPTEN_SDK_TAG} \
 	\
