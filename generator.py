@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import subprocess, datetime, sys
+import subprocess, datetime, sys, time, os
 from itertools import repeat
 
 emscripten_git_repo = 'https://github.com/kripken/emscripten/'
 docker_hub_repo = "trzeci/emscripten"
 minimum_version = "1.35.0"
+queue_file = "queue.txt"
 
 def is_version_at_least(ver, target):
 	ver = ver.split('.')
@@ -43,10 +44,10 @@ def log(text):
 		myfile.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 	print(text)
 
-def get_builds(tags, update=False, branches=False, b64=False):
+def get_builds(tags, update=False, branches=False, b32=False, b64=False):
 	builds = []
 
-	for bits in ["32bit"] + (["64bit"] if b64 else []):
+	for bits in [] + (["32bit"] if b32 else []) + (["64bit"] if b64 else []):
 		for tag in tags:
 			sdk = "sdk-tag-" + tag + "-" + bits
 			builds.append({
@@ -116,8 +117,17 @@ def rename(builds):
 		subprocess.call(["docker", "rmi", "-f", docker_hub_repo + ":" + pb])
 		subprocess.call(["docker", "rmi", "-f", docker_hub_repo + ":" + tag])
 
+def push_tag(tag):
+	for i in repeat(None, 3):
+		if subprocess.call(["docker", "push", tag]):
+			log("[WARNING] Pushing {tag} failed. Repeat.".format(tag=tag))
+		else:
+			log("[INFO] Pushed tag: {tag} ".format(tag=tag))
+			subprocess.call(["docker", "rmi", "-f", tag])
+			return
+	log("[ERROR] Pushing {tag} failed.".format(tag=tag))
 
-def generate(builds, serverTags):
+def generate(builds, serverTags, autopush):
 	for build in builds:
 		if build["docker_tag"] in serverTags:
 			if build["update"]:
@@ -143,28 +153,42 @@ def generate(builds, serverTags):
 		log("[INFO] Compiling [{tag}] in: {time}".format(tag=build["docker_tag"], time=str(datetime.datetime.now() - t_start)))
 
 		# push to docker repository
-		pushed = False
-		for i in repeat(None, 3):
-			if subprocess.call(["docker", "push", build["docker_name"]]):
-				log("[WARNING] Pushing {tag} failed. Repeat.".format(tag=build["docker_tag"]))
-			else:
-				pushed = True
-				break
-		
-		if not pushed:
-			log("[ERROR] Pushing {tag} failed.".format(tag=build["docker_tag"]))
-			continue
+		if autopush:
+			push_tag(build["docker_name"])
+		else:
+			with open(queue_file, 'w+') as f:
+				data = f.read().splitlines(True)
+				data.insert(0, build["docker_name"] + "\n")
+				f.writelines(data)
+				log("[INFO] Defered pushing tag: {tag} ".format(tag=build["docker_name"]))
 
-		subprocess.call(["docker", "rmi", "-f", build["docker_name"]])
 		log("[INFO] Finished building {tag}".format(tag=build["docker_tag"]))
 
 
-tags = get_tags()
-sorted(tags, cmp=version_compare)
 
-builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "64" in sys.argv)
-pushed_builds = get_server_tags()
+def monitor_and_push():
+	print("Waiting for something to push...")
+	while True:
+		if os.path.exists(queue_file):
+			with open(queue_file, 'r') as fin:
+				data = fin.read().splitlines(True)
+			if len(data):
+				tag_to_send = data[0].strip()
+				with open(queue_file, 'w') as fout:
+					fout.writelines(data[1:])
+				if tag_to_send:
+					push_tag(tag_to_send)
+		time.sleep(2)
 
 
-generate(builds, pushed_builds)
+if "pusher" in sys.argv:
+	monitor_and_push()
+else:
+	tags = get_tags()
+	sorted(tags, cmp=version_compare)
+
+	builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "64" in sys.argv, "32" in sys.argv)
+	pushed_builds = get_server_tags()
+
+	generate(builds, pushed_builds, "autopush" in sys.argv)
 
