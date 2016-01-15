@@ -91,7 +91,8 @@ def generate_dockerfile(path, build):
 	data = f.read();
 	f.close()
 	properties = {
-		"EMSCRIPTEN_SDK_TAG" : build["sdk"], 
+		"EMSCRIPTEN_TAG" : build["tag"],
+		"EMSCRIPTEN_SDK" : build["sdk"],
 		"EMSCRIPTEN_SDK_DIR" : build["dir"]
 	}
 	for p in properties:
@@ -187,7 +188,7 @@ else:
 	tags = get_tags()
 	sorted(tags, cmp=version_compare)
 
-	builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "64" in sys.argv, "32" in sys.argv)
+	builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "32" in sys.argv, "64" in sys.argv)
 	pushed_builds = get_server_tags()
 
 	generate(builds, pushed_builds, "autopush" in sys.argv)
