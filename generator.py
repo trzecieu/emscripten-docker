@@ -182,7 +182,7 @@ def monitor_and_push():
 		time.sleep(2)
 
 
-if "pusher" in sys.argv:
+if "consumer" in sys.argv:
 	monitor_and_push()
 else:
 	tags = get_tags()
