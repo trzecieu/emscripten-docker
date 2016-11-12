@@ -8,7 +8,10 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
 &&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake \
-&&	rm -fr cmake*.sh /opt/cmake/bin/cmake-gui /opt/cmake/doc \
+&&		rm -fr cmake*.sh /opt/cmake/doc \
+&&		rm -fr /opt/cmake/bin/cmake-gui \
+&&		rm -fr /opt/cmake/bin/ccmake \
+&&		rm -fr /opt/cmake/bin/cpack \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
 	\
 &&	git clone --depth 1 https://github.com/juj/emsdk.git emsdk_portable \
