@@ -3,7 +3,13 @@ MAINTAINER kontakt@trzeci.eu
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	apt-get -y update && apt-get install -y --no-install-recommends \
-	cmake git-core ca-certificates build-essential python nodejs \
+	wget git-core ca-certificates build-essential python nodejs \
+	\
+&&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
+&&	mkdir /opt/cmake \
+&&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake \
+&&	rm -fr cmake*.sh /opt/cmake/bin/cmake-gui /opt/cmake/doc \
+&&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
 	\
 &&	git clone --depth 1 https://github.com/juj/emsdk.git emsdk_portable \
 &&	cd emsdk_portable \

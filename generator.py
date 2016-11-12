@@ -44,20 +44,21 @@ def log(text):
 		myfile.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 	print(text)
 
-def get_builds(tags, update=False, branches=False, b32=False, b64=False):
+def get_builds(tags, update=False, branches=False, releases=False, b32=False, b64=False):
 	builds = []
 
 	for bits in [] + (["32bit"] if b32 else []) + (["64bit"] if b64 else []):
-		for tag in tags:
-			sdk = "sdk-tag-" + tag + "-" + bits
-			builds.append({
-					"tag": tag,
-					"dir": "tag-" + tag,
-					"sdk": sdk,
-					"docker_tag": sdk,
-					"docker_name" : docker_hub_repo + ":" + sdk,
-					"update" : update,
-				})
+		if releases:
+			for tag in tags:
+				sdk = "sdk-tag-" + tag + "-" + bits
+				builds.append({
+						"tag": tag,
+						"dir": "tag-" + tag,
+						"sdk": sdk,
+						"docker_tag": sdk,
+						"docker_name" : docker_hub_repo + ":" + sdk,
+						"update" : update,
+					})
 		if branches:
 			for branch in ["incoming", "master"]:
 				sdk = "sdk-" + branch + "-" + bits
@@ -188,7 +189,7 @@ else:
 	tags = get_tags()
 	sorted(tags, cmp=version_compare)
 
-	builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "32" in sys.argv, "64" in sys.argv)
+	builds = get_builds(tags, "update" in sys.argv, "branches" in sys.argv, "releases" in sys.argv, "32" in sys.argv, "64" in sys.argv)
 	pushed_builds = get_server_tags()
 
 	generate(builds, pushed_builds, "autopush" in sys.argv)
