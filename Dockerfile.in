@@ -47,8 +47,12 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO"<<std::endl;return 0;}' > test.cpp \
 &&	em++ -O2 test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js && nodejs test.js \
+	\
 &&	emcc --clear-cache --clear-ports \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
+&&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
+&&	rm -fr ~/.emscripten_ports \
+	\
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
 	\
