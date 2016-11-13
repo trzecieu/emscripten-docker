@@ -47,6 +47,8 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO"<<std::endl;return 0;}' > test.cpp \
 &&	em++ -O2 test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js && nodejs test.js \
+&&	emcc --clear-cache --clear-ports \
+&&	$EMSCRIPTEN/embuilder.py build ALL \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
 	\
@@ -58,7 +60,8 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	rm -rf /var/lib/apt/lists/* \
 &&	rm -rf /var/cache/debconf/*-old \
 &&	rm -rf /usr/share/doc/* \
-&&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/
+&&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
+&&	echo "BUILD FINISHED"
 
 # SETUP SDK
 ENV EMSCRIPTEN=/emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}
