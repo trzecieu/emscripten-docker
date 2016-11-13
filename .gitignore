@@ -2,3 +2,4 @@ Dockerfile
 log.txt
 test.js
 queue.txt
+.vscode
