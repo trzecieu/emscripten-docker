@@ -5,10 +5,10 @@ from itertools import repeat
 
 import shutil
 
-emscripten_git_repo = 'https://github.com/kripken/emscripten/'
-docker_hub_repo = "trzeci/emscripten"
-minimum_version = "1.36.6"
-queue_file = "queue.txt"
+EMSDK_GIT_REPO = 'https://github.com/kripken/emscripten/'
+DOCKER_REPO = "trzeci/emscripten"
+SDK_MIN = "1.36.6"
+QUEUE_FILE = "queue.txt"
 
 def is_version_at_least(ver, target):
     ver = ver.split('.')
@@ -24,13 +24,13 @@ def is_version_at_least(ver, target):
 
 
 def get_tags():
-    tags = subprocess.check_output(["git", 'ls-remote', '--tags', emscripten_git_repo])
+    tags = subprocess.check_output(["git", 'ls-remote', '--tags', EMSDK_GIT_REPO])
     all_tags = []
 
     for t in tags.split('\n'):
         try:
             t = t[t.index('refs/tags/') + len('refs/tags/'):].strip()
-            if is_version_at_least(t, minimum_version):
+            if is_version_at_least(t, SDK_MIN):
                 all_tags += [t]
         except:
             pass
@@ -47,39 +47,43 @@ def log(text):
     print(text)
 
 def get_builds(tags, update=False, branches=False, releases=False, b32=False, b64=False):
-    builds = []
+    result = []
 
-    for bits in [] + (["32bit"] if b32 else []) + (["64bit"] if b64 else []):
+    bit_versions = []
+    if b32: bit_versions.append("32bit")
+    if b64: bit_versions.append("64bit")
+
+    for bits in bit_versions:
         if releases:
             for tag in tags:
                 sdk = "sdk-tag-" + tag + "-" + bits
-                builds.append({
-                        "tag": tag,
-                        "dir": "tag-" + tag,
-                        "sdk": sdk,
-                        "docker_tag": sdk,
-                        "docker_name" : docker_hub_repo + ":" + sdk,
-                        "update" : update,
-                    })
+                result.append({
+                    "tag": tag,
+                    "dir": "tag-" + tag,
+                    "sdk": sdk,
+                    "docker_tag": sdk,
+                    "docker_name" : DOCKER_REPO + ":" + sdk,
+                    "update" : update,
+                })
         if branches:
             for branch in ["incoming", "master"]:
                 sdk = "sdk-" + branch + "-" + bits
-                builds.append({
+                result.append({
                     "tag": branch,
                     "dir": branch,
                     "sdk": sdk,
                     "docker_tag": sdk,
-                    "docker_name" : docker_hub_repo + ":" + sdk,
+                    "docker_name" : DOCKER_REPO + ":" + sdk,
                     "update" : True,
                 })
 
-    return builds
+    return result
 
 def get_server_tags():
     from urllib import urlopen
     import json
 
-    api = "https://registry.hub.docker.com/v1/repositories/{repo}/tags".format(repo=docker_hub_repo)
+    api = "https://registry.hub.docker.com/v1/repositories/{repo}/tags".format(repo=DOCKER_REPO)
     response = urlopen(api)
     data = json.loads(str(response.read()))
     result = {}
@@ -115,11 +119,11 @@ def rename(builds):
             continue
 
         log("[INFO] RETAG: " + pb  + " => " + tag)
-        subprocess.call(["docker", "pull", docker_hub_repo + ":" + pb])
-        subprocess.call(["docker", "tag", docker_hub_repo + ":" + pb, docker_hub_repo + ":" + tag])
-        subprocess.call(["docker", "push", docker_hub_repo + ":" + tag])
-        subprocess.call(["docker", "rmi", "-f", docker_hub_repo + ":" + pb])
-        subprocess.call(["docker", "rmi", "-f", docker_hub_repo + ":" + tag])
+        subprocess.call(["docker", "pull", DOCKER_REPO + ":" + pb])
+        subprocess.call(["docker", "tag", DOCKER_REPO + ":" + pb, DOCKER_REPO + ":" + tag])
+        subprocess.call(["docker", "push", DOCKER_REPO + ":" + tag])
+        subprocess.call(["docker", "rmi", "-f", DOCKER_REPO + ":" + pb])
+        subprocess.call(["docker", "rmi", "-f", DOCKER_REPO + ":" + tag])
 
 def push_tag(tag):
     for i in repeat(None, 3):
@@ -133,10 +137,6 @@ def push_tag(tag):
 
 def generate(builds, serverTags, autopush):
     for build in builds:
-        # print("Skipping", build)
-        if build["tag"].find("36.6") < 0:
-            print("Skipping", build["tag"])
-            continue
         if build["docker_tag"] in serverTags:
             if build["update"]:
                 log("[INFO] Update tag: " + build["docker_tag"])
@@ -148,9 +148,9 @@ def generate(builds, serverTags, autopush):
 
         generate_dockerfile("Dockerfile", build)
         
-        if not os.path.exists("dockerfiles/" + build["docker_tag"]):
-            os.makedirs("dockerfiles/" + build["docker_tag"])
-        shutil.copy("Dockerfile", "dockerfiles/" + build["docker_tag"])
+        if not os.path.exists("configs/" + build["docker_tag"]):
+            os.makedirs("configs/" + build["docker_tag"])
+        shutil.copy("Dockerfile", "configs/" + build["docker_tag"])
         
 
         # generate docker image 
@@ -160,16 +160,33 @@ def generate(builds, serverTags, autopush):
 
         # test image by compiling sample.cpp
         t_start = datetime.datetime.now()
-        if subprocess.call(["docker run -v $(pwd):/src " + build["docker_name"]+ " emcc test.cpp -o test.js && node test.js"], shell=True):
-            log("[ERROR] Testing {tag} failed".format(tag=build["docker_tag"]))
+
+        test_successed = True
+        tests = [
+            "emcc test.cpp -o test.js && node test.js",
+            "make --version",
+            "cmake --version",
+        ]
+
+        for test in tests:
+            print("Perform test `%s`" + test)
+            if subprocess.call(["docker run -v $(pwd):/src " + build["docker_name"]+ " " + test], shell=True):
+                log("[ERROR] Testing {tag} failed".format(tag=build["docker_tag"]))
+                test_successed = False
+                break
+            else:
+                print("OK")
+
+        if not test_successed:
             continue
+
         log("[INFO] Compiling [{tag}] in: {time}".format(tag=build["docker_tag"], time=str(datetime.datetime.now() - t_start)))
 
         # push to docker repository
         if autopush:
             push_tag(build["docker_name"])
         else:
-            with open(queue_file, 'w+') as f:
+            with open(QUEUE_FILE, 'w+') as f:
                 data = f.read().splitlines(True)
                 data.insert(0, build["docker_name"] + "\n")
                 f.writelines(data)
@@ -182,12 +199,12 @@ def generate(builds, serverTags, autopush):
 def monitor_and_push():
     print("Waiting for something to push...")
     while True:
-        if os.path.exists(queue_file):
-            with open(queue_file, 'r') as fin:
+        if os.path.exists(QUEUE_FILE):
+            with open(QUEUE_FILE, 'r') as fin:
                 data = fin.read().splitlines(True)
             if len(data):
                 tag_to_send = data[0].strip()
-                with open(queue_file, 'w') as fout:
+                with open(QUEUE_FILE, 'w') as fout:
                     fout.writelines(data[1:])
                 if tag_to_send:
                     push_tag(tag_to_send)
@@ -196,7 +213,7 @@ def monitor_and_push():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Emscripten Image generator')
-    parser.add_argument("tags", type=str, nargs='*', help="Explicitly provide list of tags in format X.Y.Z, i.e.: 1.34.5")
+    parser.add_argument("tags", type=str, nargs='+', help="Explicitly provide list of tags in format X.Y.Z, i.e.: 1.34.5")
     parser.add_argument("--no-32", action="store_false", help="Explicitly disable 32 images")
     parser.add_argument("--no-64", action="store_false", help="Explicitly disable 64 images")
     parser.add_argument("--update", action="store_true", help="Update docker images that are arleady created and pushed")
@@ -222,6 +239,13 @@ if __name__ == "__main__":
         #   'sdk': 'sdk-tag-1.37.4-64bit'
         # }
         builds = get_builds(tags, args.update, args.branches, args.releases, args.no_32, args.no_64)
+        # if len(args.tags)
+        args.tags = args.tags[1:]
+
+        # if tag was given explicitly, then use it
+        if len(args.tags):
+            for build in builds:
+                build["update"] = build["tag"] in args.tags
 
         # List of pushed tags to Docker, in format:
         # 'sdk-master-32bit': {'layer': ''}
