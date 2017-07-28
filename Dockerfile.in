@@ -56,10 +56,9 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
 	\
-&&	apt-get -y --purge remove build-essential gcc perl git-core ca-certificates \
+&&	apt-get -y --purge remove gcc perl git-core ca-certificates \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
-&&	apt-get -y autoremove \
 	\
 &&	rm -rf /var/lib/apt/lists/* \
 &&	rm -rf /var/cache/debconf/*-old \
