@@ -16,25 +16,34 @@ DockerHub: https://hub.docker.com/r/trzeci/emscripten/
 
 ### Usage
 
-The application runs in two modes: 
-- generator: compiles fully functional docker image and stores it into local docker inventory
-- consumer: watches `queue.txt` what generator has produced, and pushes to the docker hub
+```
+./build --help
+usage: build [-h] [--no-32] [--no-64] [--update] [--branches] [--releases]
+             [--pusher]
+             [tags [tags ...]]
 
-Hence, suggested setup requires two consoles:
+Emscripten Image generator
 
-#### generator
+positional arguments:
+  tags        Explicitly provide list of tags in format X.Y.Z, i.e.: 1.34.5
 
-`python ./generator.py branches releases 32 64`
-where:
-- `branches` : will generate images from incomming and master
-- `releases` : will generate every released tag
-- `64`/`32` : will build both 32 and 64 bit
+optional arguments:
+  -h, --help  show this help message and exit
+  --no-32     Explicitly disable 32 images
+  --no-64     Explicitly disable 64 images
+  --update    Update docker images that are arleady created and pushed
+  --branches  Update master and incomming images
+  --releases  Update released SDKs
+  --pusher    Pushes tags created by regular command
+```
 
-#### consumer
-
-`python ./generator.py consumer`
-The application will automatically push what generator has created
-
+For the instance, to build all tags that aren't build yet:
+```
+$terminal_1: ./build --releases --branches
+```
+```
+$terminal_2: ./build --pusher
+```
 
 ### License
 MIT
