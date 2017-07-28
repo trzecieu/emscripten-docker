@@ -18,9 +18,9 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	cd emsdk_portable \
 &&	rm -fr .git \
 &&	rm -fr bin \
-&&	echo {EMSCRIPTEN_TAG} > emscripten-tags.txt \
-&&	./emsdk install --build=MinSizeRel {EMSCRIPTEN_SDK} \
-&&	./emsdk activate {EMSCRIPTEN_SDK} \
+&&	echo 1.37.10 > emscripten-tags.txt \
+&&	./emsdk install --build=MinSizeRel sdk-tag-1.37.10-32bit \
+&&	./emsdk activate sdk-tag-1.37.10-32bit \
 	\
 &&	sed -i -e 's/NODE_JS=.*/NODE_JS="nodejs"/g' ~/.emscripten \
 &&	find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; \
@@ -37,9 +37,9 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	rm -rf emscripten/*/tests \
 	\
 &&	for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
-	ln -sf /emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}/$prog /usr/local/bin; done \
+	ln -sf /emsdk_portable/emscripten/tag-1.37.10/$prog /usr/local/bin; done \
 	\
-&&	EMSCRIPTEN=/emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR} \
+&&	EMSCRIPTEN=/emsdk_portable/emscripten/tag-1.37.10 \
 	\
 &&	emcc --version \
 	\
@@ -69,5 +69,5 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	echo "BUILD FINISHED"
 
 # SETUP SDK
-ENV EMSCRIPTEN=/emsdk_portable/emscripten/{EMSCRIPTEN_SDK_DIR}
+ENV EMSCRIPTEN=/emsdk_portable/emscripten/tag-1.37.10
 WORKDIR /src

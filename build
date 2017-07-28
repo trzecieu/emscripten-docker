@@ -174,7 +174,7 @@ def generate(builds, serverTags, autopush):
         ]
 
         for test in tests:
-            print("Perform test `%s`" + test)
+            print("Perform test `%s`" % test)
             if subprocess.call(["docker run -v $(pwd):/src " + build["docker_name"]+ " " + test], shell=True):
                 log("[ERROR] Testing {tag} failed".format(tag=build["docker_tag"]))
                 test_successed = False
