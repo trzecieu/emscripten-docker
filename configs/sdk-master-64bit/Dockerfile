@@ -5,7 +5,6 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	apt-get -y update && apt-get install -y --no-install-recommends \
 	wget git-core ca-certificates build-essential python libidn11 \
 	\
-&&	echo "## Installing CMAKE" \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
 &&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake \
@@ -19,11 +18,9 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	cd emsdk_portable \
 &&	rm -fr .git \
 &&	rm -fr bin \
-&&	echo 1.37.10 > emscripten-tags.txt \
-	\
-&&	echo "## Compile Emscripten" \
-&&	./emsdk install --build=MinSizeRel sdk-tag-1.37.10-32bit \
-&&	./emsdk activate sdk-tag-1.37.10-32bit \
+&&	echo master > emscripten-tags.txt \
+&&	./emsdk install --build=MinSizeRel sdk-master-64bit \
+&&	./emsdk activate sdk-master-64bit \
 	\
 &&	rm -rf node \
 &&	./emsdk install node-4.1.1-64bit \
@@ -32,7 +29,6 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	ln -sf /emsdk_portable/node/4.1.1_64bit/bin/npm /usr/local/bin/npm \
 &&	sed -i -e 's/NODE_JS=.*/NODE_JS="nodejs"/g' ~/.emscripten \
 	\
-&&	echo "## Cleaning up" \
 &&	find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; \
 &&	find . -name "*.o" -exec rm {} \; \
 &&	find . -name "*.a" -exec rm {} \; \
@@ -46,19 +42,17 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	rm -rf emscripten/*/tests \
 	\
 &&	for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
-	ln -sf /emsdk_portable/emscripten/tag-1.37.10/$prog /usr/local/bin; done \
+	ln -sf /emsdk_portable/emscripten/master/$prog /usr/local/bin; done \
 	\
-&&	EMSCRIPTEN=/emsdk_portable/emscripten/tag-1.37.10 \
+&&	EMSCRIPTEN=/emsdk_portable/emscripten/master \
 	\
 &&	emcc --version \
 	\
-&&	echo "## Compile sample code" \
 &&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO"<<std::endl;return 0;}' > test.cpp \
 &&	em++ -O2 test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js && nodejs test.js \
 	\
-&&	echo "## Compile Emscripten Ports" \
 &&	emcc --clear-cache --clear-ports \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
 &&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
@@ -67,7 +61,6 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
 	\
-&&	echo "## Cleaning up" \
 &&	apt-mark manual make \
 &&	apt-get -y remove gcc perl git-core ca-certificates wget build-essential \
 &&	apt-get -y clean \
@@ -78,8 +71,8 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 &&	rm -rf /var/cache/debconf/*-old \
 &&	rm -rf /usr/share/doc/* \
 &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
-&&	echo "## Done"
+&&	echo "BUILD FINISHED"
 
 # SETUP SDK
-ENV EMSCRIPTEN=/emsdk_portable/emscripten/tag-1.37.10
+ENV EMSCRIPTEN=/emsdk_portable/emscripten/master
 WORKDIR /src
