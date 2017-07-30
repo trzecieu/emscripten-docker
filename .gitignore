@@ -1,5 +1,7 @@
 /Dockerfile
 log.txt
-test.js
+*.js
+*.log
 queue.txt
 .vscode
+test

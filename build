@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import argparse
 import subprocess
 import datetime
 import sys
 import time
 import os
-import shutil
 
 from itertools import repeat
 
@@ -13,7 +12,10 @@ from itertools import repeat
 EMSDK_GIT_REPO = 'https://github.com/kripken/emscripten/'
 DOCKER_REPO = "trzeci/emscripten"
 SDK_MIN = "1.36.6"
+
 QUEUE_FILE = "queue.txt"
+LOG_COMPILATION = "build.log"
+LOG_STEPS = "steps.log"
 
 def is_version_at_least(ver, target):
     ver = ver.split('.')
@@ -29,7 +31,7 @@ def is_version_at_least(ver, target):
 
 
 def get_tags():
-    tags = subprocess.check_output(["git", 'ls-remote', '--tags', EMSDK_GIT_REPO])
+    tags = subprocess.check_output(["git", 'ls-remote', '--tags', EMSDK_GIT_REPO]).decode("utf-8")
     all_tags = []
 
     for t in tags.split('\n'):
@@ -47,7 +49,7 @@ def version_compare(x, y):
     return a - b
 
 def log(text):
-    with open("log.txt", "a") as myfile:
+    with open(LOG_STEPS, "a") as myfile:
         myfile.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
     print(text)
 
@@ -99,7 +101,7 @@ def get_server_tags():
     return result
 
 def generate_dockerfile(path, build):
-    f = open("Dockerfile.in", "r")
+    f = open("template/Dockerfile", "r")
     data = f.read()
     f.close()
     properties = {
@@ -137,6 +139,7 @@ def push_tag(tag):
         else:
             log("[INFO] Pushed tag: {tag} ".format(tag=tag))
             subprocess.call(["docker", "rmi", "-f", tag])
+            # TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
             return
     log("[ERROR] Pushing {tag} failed.".format(tag=tag))
 
@@ -151,15 +154,16 @@ def generate(builds, serverTags, autopush):
 
         log("[INFO] Start building {tag}".format(tag=build["docker_tag"]))
 
-        generate_dockerfile("Dockerfile", build)
-        
-        if not os.path.exists("configs/" + build["docker_tag"]):
-            os.makedirs("configs/" + build["docker_tag"])
-        shutil.copy("Dockerfile", "configs/" + build["docker_tag"])
-        
+        config_dir = os.path.join("configs", build["docker_tag"])
+        docker_file = os.path.join(config_dir, "Dockerfile")
 
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+
+        generate_dockerfile(docker_file, build)
+        
         # generate docker image 
-        if subprocess.call(["docker", "build", "-t",  build["docker_name"], "."]):
+        if subprocess.call(["docker", "build", "-t",  build["docker_name"], config_dir]):
             log("[ERROR] Building {tag} failed".format(tag=build["docker_tag"]))
             continue
 
@@ -168,14 +172,14 @@ def generate(builds, serverTags, autopush):
 
         test_successed = True
         tests = [
-            "emcc test.cpp -o test.js && node test.js",
+            "emcc src/test.cpp -o src/test.js && node src/test.js",
             "make --version",
             "cmake --version",
         ]
 
         for test in tests:
             print("Perform test `%s`" % test)
-            if subprocess.call(["docker run -v $(pwd):/src " + build["docker_name"]+ " " + test], shell=True):
+            if subprocess.call(["docker run --rm -v $(pwd):/src " + build["docker_name"]+ " " + test], shell=True):
                 log("[ERROR] Testing {tag} failed".format(tag=build["docker_tag"]))
                 test_successed = False
                 break
@@ -251,7 +255,6 @@ if __name__ == "__main__":
         if len(args.tags):
             for build in builds:
                 build["update"] = build["tag"] in args.tags
-
         # List of pushed tags to Docker, in format:
         # 'sdk-master-32bit': {'layer': ''}
         pushed_builds = get_server_tags()
