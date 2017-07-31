@@ -8,6 +8,7 @@ import os
 
 from itertools import repeat
 
+# TODO: https://github.com/jwilder/docker-squash
 
 EMSDK_GIT_REPO = 'https://github.com/kripken/emscripten/'
 DOCKER_REPO = "trzeci/emscripten"
@@ -173,6 +174,8 @@ def generate(builds, serverTags, autopush):
         test_successed = True
         tests = [
             "emcc src/test.cpp -o src/test.js && node src/test.js",
+            "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
+            "java -version",
             "make --version",
             "cmake --version",
         ]
