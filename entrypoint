@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-source $EMSDK_FOLDER/emsdk_env.sh ?> /dev/null
+. $EMSDK_FOLDER/emsdk_env.sh ?> /dev/null
 exec "$@"
