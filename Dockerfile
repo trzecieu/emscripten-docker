@@ -85,7 +85,7 @@ RUN echo "## Start building" \
 &&	echo "## Cleaning up" \
 &&	apt-mark manual make openjdk-7-jre-headless \
 &&	apt-get -y remove \
-	gcc perl git-core wget build-essential git \
+	gcc perl git-core build-essential git \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
 &&	apt-get -y autoremove \
