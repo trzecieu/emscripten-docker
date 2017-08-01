@@ -4,7 +4,6 @@ MAINTAINER kontakt@trzeci.eu
 # dynamically injected by ./build script
 ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 # TODO: Deduce following
-ARG EMSCRIPTEN_SDK_DIR=tag-1.37.16
 ARG EMSCRIPTEN_TAG=1.37.16
 
 # hardcoded
@@ -39,6 +38,8 @@ RUN echo "## Start building" \
 &&	./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
 &&	./emsdk activate $EMSCRIPTEN_SDK \
 	\
+&&	EMSCRIPTEN=$(dirname $(pwd)/$(find emscripten/*/em++.py))\
+	\
 &&	rm -rf node \
 &&	./emsdk install node-4.1.1-64bit \
 &&	ln -sf $EMSDK/node/4.1.1_64bit/bin/node /usr/local/bin/nodejs \
@@ -63,10 +64,8 @@ RUN echo "## Start building" \
 &&	rm -rf emscripten/*/tests \
 	\
 &&	for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
-	ln -sf $EMSDK/emscripten/$EMSCRIPTEN_SDK_DIR/$prog /usr/local/bin; done \
+	ln -sf $EMSCRIPTEN/$prog /usr/local/bin; done \
 &&	ln -sf $EMSDK/emsdk /usr/local/bin/emsdk \
-	\
-&&	EMSCRIPTEN=$EMSDK/emscripten/$EMSCRIPTEN_SDK_DIR \
 	\
 &&	emcc --version \
 	\
