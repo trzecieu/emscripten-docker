@@ -9,7 +9,7 @@ ARG EMSCRIPTEN_TAG=1.37.16
 # hardcoded
 ARG EMSDK=/emsdk_portable
 
-ADD	entrypoint /
+ADD entrypoint /
 RUN echo "## Start building" \
 	\
 &&	chmod 777 /entrypoint \
