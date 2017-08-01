@@ -12,10 +12,10 @@ ARG EMSDK=/emsdk_portable
 ADD	entrypoint /
 RUN echo "## Start building" \
 	\
-&&	chmod 777 /entrypoint
+&&	chmod 777 /entrypoint \
 	\
 &&	echo "## Update and install packages" \
-&&	apt-get -q -y update && apt-get -q install -y --no-install-recommends \
+&&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
 	wget git-core ca-certificates build-essential python libidn11 openjdk-7-jre-headless \
 	\
 &&	echo "## Installing CMAKE" \
@@ -63,24 +63,20 @@ RUN echo "## Start building" \
 &&	rm -rf zips \
 &&	rm -rf emscripten/*/tests \
 	\
-&&	for prog in em++ em-config emar emcc emconfigure emmake emranlib emrun emscons emcmake; do \
-	ln -sf $EMSCRIPTEN/$prog /usr/local/bin; done \
-&&	ln -sf $EMSDK/emsdk /usr/local/bin/emsdk \
-	\
 &&	emcc --version \
-	\
-&&	echo "## Compile sample code" \
-&&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
-&&	printf '#include <iostream>\nint main()$std::cout<<"HELLO FROM DOCKER C++"<<std::endl;return 0;' > test.cpp \
-&&	em++ -O2 test.cpp -o test.js && nodejs test.js \
-&&	em++ test.cpp -o test.js && nodejs test.js \
-&&	em++ test.cpp -o test.js --closure 1 && nodejs test.js \
 	\
 &&	echo "## Compile Emscripten Ports" \
 &&	emcc --clear-cache --clear-ports \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
 &&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
 &&	rm -fr ~/.emscripten_ports \
+	\
+&&	echo "## Compile sample code" \
+&&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
+&&	printf '#include <iostream>\nint main(){std::cout<<"HELLO FROM DOCKER C++"<<std::endl;return 0;}' > test.cpp \
+&&	em++ -O2 test.cpp -o test.js && nodejs test.js \
+&&	em++ test.cpp -o test.js && nodejs test.js \
+&&	em++ test.cpp -o test.js --closure 1 && nodejs test.js \
 	\
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
@@ -107,5 +103,4 @@ ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/jre
 
 WORKDIR /src
 
-CMD ["/bin/bash"]
-ENTRYPOINT ["/entrypoint"]
+CMD ["/bin/bash"]; ENTRYPOINT ["/entrypoint"]
