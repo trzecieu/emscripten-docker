@@ -63,7 +63,7 @@ RUN echo "## Start building" \
 &&	rm -rf zips \
 &&	rm -rf emscripten/*/tests \
 	\
-&&	. emsdk_env.sh \
+&&	./emsdk construct_env && . ./emsdk_set_env.sh \
 &&	emcc --version \
 	\
 &&	echo "## Compile Emscripten Ports" \
