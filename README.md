@@ -1,66 +1,36 @@
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/)
-[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
+# Emscripten Docker
+This repository contains source files for Docker Hub projects:
 
-## Info
-**GitHub / Issue tracker**: https://github.com/asRIA/emscripten-docker
-**Docker**: https://hub.docker.com/r/trzeci/emscripten/
+## trzeci/emscripten-slim
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
 
-## Structure
-Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/Dockerfile)
-* Base system: **Debian Jessie**
-* Installed packages: 
-  * `cmake`: 3.6.3
-  * `make`: 4.0
-  * `python`: 2.7
-  * `nodejs`: 4.1 (from EMSDK)
-  * `java`: OpenJDK 1.7.0_131
-* Version of Emscripten:  **32bit** and **64bit**
-* Starting from **1.36.7** images are bundled with cmake 3.6.3
+* **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten-slim/
+* **ReadMe**: https://github.com/asRIA/emscripten-docker/blob/master/emscripten-slim.md
 
-`debian:jessie` has been chosen in order to have the latest ImageMagick. It is not a part of this image but this image could be easy extend to pull it. Image has been optimised in order to have the lowest possible size.
+## trzeci/emscripten
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
 
-## Tag schema
-#### latest
-Currently latest tag is not available. Not decided yet it should point either on the latest master, or latest official release. 
+* **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten/
+* **ReadMe**: https://github.com/asRIA/emscripten-docker/blob/master/emscripten.md
 
-#### Version release
-`sdk-tag-{VERSION}-{BITS}`
-where
-**VERSION**: One of the official version released since 1.34.1
-**BITS**: `["32bit", "64bit"]`
-Example: `sdk-tag-1.34.4-64bit`
+## Usage
+```
+/build --help
+usage: build [-h] {compile,test,push} ...
 
-#### Branch release
-`sdk-{BRANCH}-{BITS}`
-where
-**BRANCH**: `["incoming", "master"]`
-**BITS**: `["32bit", "64bit"]`
-Example: `sdk-master-32bit`
+Emscripten Image generator
 
-## How to use the image?
-Start volume should be mounted in `/src`. 
-For start point every Emscripten command is available. For the instance: emcc, em++, emmake, emar etc.
+optional arguments:
+  -h, --help           show this help message and exit
 
-To compile single file it could be called like:
-`docker run -v $(pwd):/src trzeci/emscripten:sdk-tag-1.35.4-64bit emcc helloworld.cpp -o helloworld.js`
+command:
+  {compile,test,push}  Main work command
+    compile            Compile Docker images
+    test               Test given tag(s) with Emscripten and WebAssembly
+                       compatibility
+    push               Runs a service what will push created images
+```
 
-This container nicely works with cmake projects
-
-## How to compile?
-0. Pull the latest https://github.com/asRIA/emscripten-docker
-0. Compile Dockerfile
-
-Here you can just type: `docker build . -t MY_TAG` and it should work just fine. 
-You can use also `./build` script to automate the process.
-
-## History
-* from **1.37.19** all further images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/Dockerfile). An entrypoint was added.
-* from **1.37.10** images are bundled with `java`
-* from **1.36.7** images are bundled with `make` and `nodejs`
-* from **1.36.7** images are bundled with `cmake` 3.6.3, images are build from generated [Dockerfiles](https://github.com/asRIA/emscripten-docker/tree/f738f061c8068ec24124c37286eafec01d54a6ef/configs)
-* from **1.35.0** images based on Debian
-* from **1.34.X** images based on Ubuntu:15.10
-
-### License
+## License
 MIT
 
