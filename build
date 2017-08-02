@@ -6,29 +6,94 @@ import datetime
 import time
 import os
 import json
+import re
+import sys
 
 from urllib import urlopen
 from itertools import repeat
 
 # TODO: https://github.com/jwilder/docker-squash
-
+# TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
 
 EMSDK_GIT_REPO = "https://github.com/kripken/emscripten/"
 DOCKER_REGISTRY = "registry.hub.docker.com"
 DOCKER_REPO = "trzeci/emscripten"
+DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
 
 SDK_MIN = "1.37.16"
 QUEUE_FILE = "queue.txt"
 LOG_COMPILATION = "build.log"
-LOG_STEPS = "steps.log"
+
+TEST_CASES = {
+    DOCKER_REPO_SLIM : [
+        "emcc src/test.cpp -o src/test.js && node src/test.js",
+        "emcc src/test.cpp -o src/test.js && node src/test.js",
+        "nodejs --version",
+        "python --version",
+    ],
+    DOCKER_REPO : [
+        "emcc src/test.cpp -o src/test.js && node src/test.js",
+        "emcc src/test.cpp -o src/test.js && node src/test.js",
+        "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
+        "nodejs --version",
+        "python --version",
+        "wget --version",
+        "make --version",
+        "cmake --version",
+    ], 
+}
 
 
 # Utils ------------------------------------------------------------------------
+class Dashboard:
+    task = ""
+    task_progress = ""
+    step = ""
+    status = ""
+    status_progress = ""
+
+    last_status = ""
+
+    def update(self):
+        status = "[{task_progress}][{task}](step:{step})[{status_progress:>3}%]({status})\r".format(
+            task_progress = self.task_progress,
+            task = self.task,
+            step = self.step,
+            status = self.status,
+            status_progress = self.status_progress,
+        )
+
+        if len(self.last_status) > len(status):
+            sys.stdout.write(" " * len(self.last_status) + "\r")
+            sys.stdout.flush()
+
+        self.last_status = status
+        sys.stdout.write(status)
+        sys.stdout.flush()
+        
+    def set_task(self, task, index, length):
+        self.step = ""
+        self.status = ""
+        self.status_progress = ""
+
+        self.task = task
+        self.task_progress = "{i}/{o}".format(i=index, o=length)
+        self.update()
+
+    def set_status(self, status):
+        self.status = status
+        self.update()
+
+    def set_step(self, step):
+        self.step = step
+
+    def set_progress(self, progress):
+        self.status_progress = progress
+        self.update()
 
 def log(text):
-    with open(LOG_STEPS, "a") as myfile:
-        myfile.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
-    print(text)
+    with open(LOG_COMPILATION, "a") as f:
+        f.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 
 def version_compare(x, y):
     a = 1 if is_version_at_least(x, y) else 0
@@ -49,7 +114,21 @@ def is_version_at_least(ver, target):
 
 #  Emscripten Helpers ----------------------------------------------------------
 
-class EmscriptenHelper:
+class EMBuild:
+    def __init__(self, emscripten_sdk, update):
+        self.emscripten_sdk = emscripten_sdk
+        self.update = update
+
+    @property
+    def docker_name(self, docker_project):
+        return docker_project + ":" + self.emscripten_sdk
+
+    @property
+    def docker_tag(self):
+        return self.emscripten_sdk
+
+
+class EMHelper:
     @staticmethod
     def get_sdk_name_tag(tag, bits):
         return "sdk-tag-{tag}-{bits}bit".format(tag=tag, bits=bits)
@@ -77,19 +156,20 @@ class EmscriptenHelper:
 class EmscriptenTester:
     @staticmethod
     def test_image(id, remove_image=False):
+        print("TESTING: " + id)
         test_successed = True
-        tests = [
-            "emcc src/test.cpp -o src/test.js && node src/test.js",
-            "emcc src/test.cpp -o src/test.js && node src/test.js",
-            "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
-            "java -version",
-            "make --version",
-            "cmake --version",
-        ]
 
-        if subprocess.call(["docker pull {id}".format(id=id)], shell=True):
-            print("[ERROR] Image wasn't pulled and it's not stored locally")
-            return False
+        docker_project = DockerHelper.decompose_image_id(id)[0]
+        if docker_project not in TEST_CASES:
+            print("Missing defined test cases for %s, fallback to base tests" % docker_project)
+            tests = TEST_CASES[DOCKER_REPO_SLIM]
+        else:
+            tests = TEST_CASES[docker_project]
+
+        # FIXME: Doesn't detect local storage 
+        # if subprocess.call(["docker pull {id}".format(id=id)], shell=True):
+            # print("[ERROR] Image wasn't pulled and it's not stored locally: " + id)
+            # return False
 
         for test in tests:
             print("Perform test `%s`" % test)
@@ -113,12 +193,27 @@ class DockerHelper:
         api = "https://{registry}/v1/repositories/{repo}/tags".format(repo=repo, registry=DOCKER_REGISTRY)
         response = urlopen(api)
         data = json.loads(str(response.read()))
-        result = {}
+        result = []
         for node in data:
-            result[str(node["name"])] = {
-                "layer" : str(node["layer"])
-            }
+            result.append(str(node["name"]))
         return result
+
+    @staticmethod
+    def decompose_image_id(image_id):
+        print(image_id)
+        project, tag = image_id.split(":")
+        return (project, tag)
+
+    @staticmethod
+    def push_image(image):
+        for i in repeat(None, 3):
+            if subprocess.call(["docker", "push", image]):
+                log("[WARNING] Pushing {image} failed. Repeat.".format(image=image))
+            else:
+                log("[INFO] Pushed tag: {image} ".format(image=image))
+                subprocess.call(["docker", "rmi", "-f", image])
+                return
+        log("[ERROR] Pushing {image} failed.".format(image=image))
 
 # --------------VV------------- NOT REFACTORED YET --------------VV------------- 
 
@@ -132,165 +227,116 @@ def get_builds(tags, update=False, branches=False, releases=False, b32=False, b6
     for bits in bit_versions:
         if releases:
             for tag in tags:
-                sdk = EmscriptenHelper.get_sdk_name_tag(tag, bits)
-                result.append({
-                    "tag": tag,
-                    "dir": "tag-" + tag,
-                    "sdk": sdk,
-                    "docker_tag": sdk,
-                    "docker_name" : DOCKER_REPO + ":" + sdk,
-                    "update" : update,
-                })
+                sdk = EMHelper.get_sdk_name_tag(tag, bits)
+                result.append(EMBuild(sdk, update))
         if branches:
             for branch in ["incoming", "master"]:
-                sdk = EmscriptenHelper.get_sdk_name_branch(branch, bits)
-                result.append({
-                    "tag": branch,
-                    "dir": branch,
-                    "sdk": sdk,
-                    "docker_tag": sdk,
-                    "docker_name" : DOCKER_REPO + ":" + sdk,
-                    "update" : True,
-                })
-
+                sdk = EMHelper.get_sdk_name_branch(branch, bits)
+                result.append(EMBuild(sdk, True))
     return result
 
-# def generate_dockerfile(path, build):
-#     f = open("template/Dockerfile", "r")
-#     data = f.read()
-#     f.close()
-#     properties = {
-#         "EMSCRIPTEN_TAG" : build["tag"],
-#         "EMSCRIPTEN_SDK" : build["sdk"],
-#         "EMSCRIPTEN_SDK_DIR" : build["dir"]
-#     }
-#     for p in properties:
-#         data = data.replace("{" + p + "}", properties[p])
-#     f = open(path, "w")
-#     f.write(data)
-#     f.close()
 
-def rename(builds):
-    for pb in builds:
-        if pb.startswith("sdk"):
-            log("Already OK: " + pb)
-            continue
-        tag = "sdk-tag-" + pb + "-32bit"
-        if tag in builds:
-            log("Already Exists: " + pb)
-            continue
+def compile_image(image_id):
+    t_start = datetime.datetime.now()
+    docker_project, emscripten_sdk = DockerHelper.decompose_image_id(image_id)
+    log("[INFO] Start compiling [{i}]".format(i=image_id))
+    with open(LOG_COMPILATION, "a") as f:
+        p = subprocess.Popen([
+            "docker", 
+            "build", 
+            "-t", image_id,
+            "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
+            # "--build-arg", "BUILD_DATE="+datetime.datetime.now().isoformat('T'),
+            "--build-arg", "VCS_REF="+subprocess.check_output("git rev-parse --short HEAD".split(" ")).strip(),
+            "docker/" + docker_project
+        ], stdout=subprocess.PIPE)
 
-        log("[INFO] RETAG: " + pb  + " => " + tag)
-        subprocess.call(["docker", "pull", DOCKER_REPO + ":" + pb])
-        subprocess.call(["docker", "tag", DOCKER_REPO + ":" + pb, DOCKER_REPO + ":" + tag])
-        subprocess.call(["docker", "push", DOCKER_REPO + ":" + tag])
-        subprocess.call(["docker", "rmi", "-f", DOCKER_REPO + ":" + pb])
-        subprocess.call(["docker", "rmi", "-f", DOCKER_REPO + ":" + tag])
+        for l in iter(p.stdout.readline, ''):
+            f.write(l)
+            f.flush()
 
-def push_tag(tag):
-    for i in repeat(None, 3):
-        if subprocess.call(["docker", "push", tag]):
-            log("[WARNING] Pushing {tag} failed. Repeat.".format(tag=tag))
-        else:
-            log("[INFO] Pushed tag: {tag} ".format(tag=tag))
-            subprocess.call(["docker", "rmi", "-f", tag])
-            # TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
-            return
-    log("[ERROR] Pushing {tag} failed.".format(tag=tag))
-
-def generate(builds, serverTags, autopush):
-    for build in builds:
-        if build["docker_tag"] in serverTags:
-            if build["update"]:
-                log("[INFO] Update tag: " + build["docker_tag"])
-            else:
-                log("[INFO] Not need to create " + build["docker_tag"])
+            r = re.match(r'## (.+)', l)
+            if r:
+                dashboard.set_status(r.groups()[0])
                 continue
 
-        log("[INFO] Start building {tag}".format(tag=build["docker_tag"]))
+            r = re.match(r'\[\s*(\d+)\%]', l)
+            if r:
+                dashboard.set_progress(int(r.groups()[0]))
+                continue
+
+            r = re.match(r'Step (\d+/\d+)', l)
+            if r:
+                dashboard.set_step(r.groups()[0])
+                continue
+
+    log("[INFO] Compiled [{tag}] in: {time}".format(tag=image_id, time=str(datetime.datetime.now() - t_start)))
+    return True
+
+def defer_push(image_name):
+    with open(QUEUE_FILE, 'w+') as f:
+        data = f.read().splitlines(True)
+        data.insert(0, image_name + "\n")
+        f.writelines(data)
+        log("[INFO] Defered pushing name: {name} ".format(name=image_name))
 
 
-        # --build-arg
-        # config_dir = os.path.join("configs", build["docker_tag"])
-        # docker_file = os.path.join(config_dir, "Dockerfile")
+def get_sdk_to_compile(em_builds, docker_tags):
+    result = []
+    for b in em_builds:
+        if b.docker_tag not in docker_tags:
+            b.update = True
 
-        # if not os.path.exists(config_dir):
-            # os.makedirs(config_dir)
+        if b.update:
+            result.append(b.docker_tag)
+    return result
 
-        # generate_dockerfile(docker_file, build)
-        
-        config_dir = "."
-        docker_file = "Dockerfile"
-        # generate docker image 
-        if subprocess.call([
-                "docker", 
-                "build", 
-                "-t",  build["docker_name"],
-                "--build-arg", "EMSCRIPTEN_TAG="+build["tag"], 
-                "--build-arg", "EMSCRIPTEN_SDK="+build["sdk"], 
-                "--build-arg", "EMSCRIPTEN_SDK_DIR="+build["dir"], 
-                config_dir
-            ]):
-            log("[ERROR] Building {tag} failed".format(tag=build["docker_tag"]))
-            continue
-
-        # test image by compiling sample.cpp
-        t_start = datetime.datetime.now()
-
-        if not EmscriptenTester.test_image(build["docker_name"]):
-            continue
-
-        log("[INFO] Compiling [{tag}] in: {time}".format(tag=build["docker_tag"], time=str(datetime.datetime.now() - t_start)))
-
-        # push to docker repository
-        if autopush:
-            push_tag(build["docker_name"])
-        else:
-            with open(QUEUE_FILE, 'w+') as f:
-                data = f.read().splitlines(True)
-                data.insert(0, build["docker_name"] + "\n")
-                f.writelines(data)
-                log("[INFO] Defered pushing tag: {tag} ".format(tag=build["docker_name"]))
-
-        log("[INFO] Finished building {tag}".format(tag=build["docker_tag"]))
 
 # ------------------------------------------------------------------------------
 
 def build(args):
     """Build images, and push tags to the queue"""
 
-    tags = EmscriptenHelper.get_emscripten_tags(SDK_MIN)
+    # ["1.23.4", ...]
+    emscripten_tags = EMHelper.get_emscripten_tags(SDK_MIN)
+    # List of pushed tags to Docker, in format: ['sdk-master-32bit', ...]
+    docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
 
-    # list of build description: 
-    # {
-    #   'update': True, 
-    #   'tag': '1.37.4', 
-    #   'docker_name': 'trzeci/emscripten:sdk-tag-1.37.4-64bit', 
-    #   'docker_tag': 'sdk-tag-1.37.4-64bit', 
-    #   'dir': 'tag-1.37.4', 
-    #   'sdk': 'sdk-tag-1.37.4-64bit'
-    # }
-    builds = get_builds(tags, args.update, args.branches, args.releases, args.no_32, args.no_64)
+    # list of build description: [EMBuild...]
+    em_bulds = get_builds(emscripten_tags, args.update, args.branches, args.releases, args.no_32, args.no_64)
 
+    images_to_compile =  get_sdk_to_compile(em_bulds, docker_tags)
     # if tag was given explicitly, then use it
-    if len(args.tags):
-        for build in builds:
-            build["update"] = build["tag"] in args.tags
-    # List of pushed tags to Docker, in format:
-    # 'sdk-master-32bit': {'layer': ''}
-    pushed_builds = DockerHelper.get_server_tags(DOCKER_REPO)
-
-    # Execute compilation process
-    generate(builds, pushed_builds, False)
+    for sth in args.sdks:
+        # sdk can be either: full docker image id, or a tag. 
+        if sth.find(":") >= 0:
+            images_to_compile.append(sth)
+        elif re.match(r'^\d+\.\d+\.\d+$', sth):
+            for b in ["64", "32"]:
+                for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
+                    
+                    images_to_compile.append("{r}:{t}".format(r=r, t=EMHelper.get_sdk_name_tag(sth, b)))
+        elif sth in ["master", "incoming"]:
+            for b in ["64", "32"]:
+                for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
+                    images_to_compile.append("{r}:{t}".format(r=r, t=EMHelper.get_sdk_name_branch(sth, b)))
+        else:
+            images_to_compile.append(DOCKER_REPO_SLIM + ":" + sth)
+            images_to_compile.append(DOCKER_REPO + ":" + sth)
+    
+    for i, image_id in enumerate(images_to_compile):
+        dashboard.set_task(image_id, i + 1, len(images_to_compile))
+        
+        if compile_image(image_id) and EmscriptenTester.test_image(image_id):
+            defer_push(image_id)
 
 def test(args):
     """Run tests"""
     for tag in args.tags:
         EmscriptenTester.test_image((args.project or DOCKER_REPO) + ":" + tag, args.spotless)
-        
-    
+
 def push(args):
-    """Push creted tags, what are waiting in queue document """
+    """Push created tags, what are waiting in queue document """
     while True:
         if os.path.exists(QUEUE_FILE):
             with open(QUEUE_FILE, 'r') as fin:
@@ -300,16 +346,19 @@ def push(args):
                 with open(QUEUE_FILE, 'w') as fout:
                     fout.writelines(data[1:])
                 if tag_to_send:
-                    push_tag(tag_to_send)
+                    DockerHelper.push_image(tag_to_send)
         time.sleep(2)
+
+
+dashboard = Dashboard()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Emscripten Image generator')
     subparsers = parser.add_subparsers(title="command", help="Main work command")
 
-    parser_build = subparsers.add_parser("build", help="Build images")
+    parser_build = subparsers.add_parser("compile", help="Compile Docker images")
     parser_build.set_defaults(function=build)
-    parser_build.add_argument("tags", type=str, nargs='*', help="Explicitly provide list of tags in format X.Y.Z, i.e.: 1.34.5")
+    parser_build.add_argument("sdks", type=str, nargs='*', help="Explicitly provide list of Emscripten SDKs in format sdk-incoming-32bit or sdk-tag-1.37.17-32bit")
     parser_build.add_argument("--no-32", action="store_false", help="Explicitly disable 32 images")
     parser_build.add_argument("--no-64", action="store_false", help="Explicitly disable 64 images")
     parser_build.add_argument("--update", action="store_true", help="Update docker images that are arleady created and pushed")
