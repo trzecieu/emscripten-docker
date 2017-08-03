@@ -28,6 +28,7 @@ TEST_CASES = {
     DOCKER_REPO_SLIM : [
         "emcc src/test.cpp -o src/test.js && node src/test.js",
         "emcc src/test.cpp -o src/test.js && node src/test.js",
+        "emcc src/test.cpp -o src/test.js -s WASM=1 ",
         "nodejs --version",
         "python --version",
     ],
