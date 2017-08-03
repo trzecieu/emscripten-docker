@@ -16,9 +16,9 @@ LABEL maintainer="kontakt@trzeci.eu" \
 
 # ------------------------------------------------------------------------------
 
-RUN echo "## Start building" \
+RUN echo "\n## Start building" \
     \
-&&	echo "## Update and install packages" \
+&&	echo "\n## Update and install packages" \
 &&	apt-get -qq -y update && apt-get -qq install -y \
         wget \
         git-core \
@@ -29,7 +29,7 @@ RUN echo "## Start building" \
         openjdk-7-jre-headless \
         libidn11 \
     \
-&&	echo "## Installing CMAKE" \
+&&	echo "\n## Installing CMake" \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
 &&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
@@ -44,22 +44,24 @@ RUN echo "## Start building" \
 &&	. /entrypoint \
 &&	emcc --version \
     \
-&&	echo "## Compile Emscripten Ports" \
 &&	emcc --clear-cache --clear-ports \
+    \
+&&	echo "\n## Compile Emscripten Ports" \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
 &&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
 &&	rm -fr ~/.emscripten_ports \
     \
-&&	echo "## Compile sample code" \
+&&	echo "\n## Compile sample code" \
 &&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO FROM DOCKER C++"<<std::endl;return 0;}' > test.cpp \
 &&	em++ -O2 test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js --closure 1 && nodejs test.js \
+    \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
     \
-&&	echo "## Cleaning up" \
+&&	echo "\n## Cleaning up" \
 &&	apt-mark manual make openjdk-7-jre-headless wget gcc \
 &&	apt-get -y remove \
     perl \
@@ -74,7 +76,7 @@ RUN echo "## Start building" \
 &&	rm -rf /usr/share/man/??_* \
 &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
     \
-&&	echo "## Done"
+&&	echo "\n## Done"
 
 # SETUP SDK
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/jre

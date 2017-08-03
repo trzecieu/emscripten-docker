@@ -26,14 +26,10 @@ RUN echo "\n## Start building" \
         build-essential \
         python \
     \
-&&	echo "\n## Installing CMAKE" \
+&&	echo "\n## Installing CMake" \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
 &&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
-&&		rm -fr cmake*.sh /opt/cmake/doc \
-&&		rm -fr /opt/cmake/bin/cmake-gui \
-&&		rm -fr /opt/cmake/bin/ccmake \
-&&		rm -fr /opt/cmake/bin/cpack \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
 &&	git clone --depth 1 https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK \
@@ -53,13 +49,24 @@ RUN echo "\n## Start building" \
     \
 &&  . ./emsdk_set_env.sh \
     \
+&&	echo "\n## Compile Binaryen" \
+&&	$EMSCRIPTEN/embuilder.py build binaryen \
+&&  mkdir $EMSDK/binaryen \
+&&  mv $(find ~/.emscripten_ports/binaryen -type d -name "binaryen-*")/* $EMSDK/binaryen \
+&&  rm -fr ~/.emscripten_ports/binaryen* \
+&&  rm -fr $EMSDK/binaryen/CMakeFiles $EMSDK/binaryen/src $EMSDK/binaryen/lib $EMSDK/binaryen/test \
+&&	printf "BINARYEN_ROOT = '$EMSDK/binaryen/'\n" >> ~/.emscripten \
+&&	sed -i "s PATH=\" PATH=\"$EMSDK/binaryen/bin: g" $EMSDK/emsdk_set_env.sh \
+&&  . ./emsdk_set_env.sh \
+    \
+&&	echo "\n## Cleaning up Emscripten Compilation" \
+    \
 &&	emscripten_version_file=$(find clang/*/src/emscripten-version.txt) \
 &&	mv $emscripten_version_file emscripten-version.txt \
 &&	rm -rf clang/*/src \ 
 &&	mkdir -p $(echo "$(dirname "$emscripten_version_file")") \ 
 &&	mv emscripten-version.txt $emscripten_version_file \
     \
-&&	echo "\n## Cleaning up Emscripten Compilation" \
 &&	find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; \
 &&	find . -name "*.o" -exec rm {} \; \
 &&	find . -name "*.a" -exec rm {} \; \
@@ -71,7 +78,17 @@ RUN echo "\n## Start building" \
     \
 &&	rm -fr /opt/cmake /usr/local/bin/cmake \
     \
+&&	echo "\n## Internal testing" \
+&&	cd / \
 &&	emcc --version \
+&&	nodejs --version \
+&&	python --version \
+&&	which asm2wasm \
+&&	which llvm-ar \
+&&	which emsdk \
+&&	which emcc \
+&&	which em++ \
+    \
 &&	emcc --clear-cache --clear-ports \
     \
 &&	echo "\n## Compile sample code" \
@@ -79,6 +96,7 @@ RUN echo "\n## Start building" \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO FROM DOCKER C++"<<std::endl;return 0;}' > test.cpp \
 &&	em++ -O2 test.cpp -o test.js && nodejs test.js \
 &&	em++ test.cpp -o test.js && nodejs test.js \
+&&	em++ test.cpp -o test.js -s WASM=1 \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
     \
@@ -99,6 +117,7 @@ RUN echo "\n## Start building" \
 &&	apt-get -y autoclean \
 &&	apt-get -y autoremove \
     \
+&&	echo "\n## Remove unused Debian files" \
 &&	rm -rf /var/lib/apt/lists/* \
 &&	rm -rf /var/cache/debconf/*-old \
 &&	rm -rf /usr/share/doc/* \
