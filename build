@@ -52,19 +52,23 @@ class Dashboard:
     task_progress = ""
     step = ""
     status = ""
+    log_trace = ""
     status_progress = ""
 
     last_status = ""
 
     def update(self):
-        status = "[{task_progress}][{task}](step:{step})[{status_progress:>3}%]({status})\r".format(
+        status = "[{task_progress}]({task})[{step}][{status_progress}%]({status}) {trace}\r".format(
             task_progress = self.task_progress,
             task = self.task,
             step = self.step,
             status = self.status,
             status_progress = self.status_progress,
+            trace = self.log_trace,
         )
+        self.tail(status)
 
+    def tail(self, status):
         if len(self.last_status) > len(status):
             sys.stdout.write(" " * len(self.last_status) + "\r")
             sys.stdout.flush()
@@ -72,11 +76,13 @@ class Dashboard:
         self.last_status = status
         sys.stdout.write(status)
         sys.stdout.flush()
-        
+
+
     def set_task(self, task, index, length):
         self.step = ""
         self.status = ""
         self.status_progress = ""
+        self.log_trace = ""
 
         self.task = task
         self.task_progress = "{i}/{o}".format(i=index, o=length)
@@ -84,6 +90,7 @@ class Dashboard:
 
     def set_status(self, status):
         self.status = status
+        self.log_trace = ""
         self.update()
 
     def set_step(self, step):
@@ -93,7 +100,21 @@ class Dashboard:
         self.status_progress = progress
         self.update()
 
-def log(text):
+    def trace(self,trace):
+        self.log_trace = trace
+        self.update()
+
+    def log(self, text):
+        copy = self.last_status
+        self.tail("")
+        print(text) # and moves up
+        self.tail(copy)
+
+
+def log(text, console=False):
+    if console:
+        dashboard.log(text)
+
     with open(LOG_COMPILATION, "a") as f:
         f.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 
@@ -158,12 +179,12 @@ class EMHelper:
 class EmscriptenTester:
     @staticmethod
     def test_image(id, remove_image=False):
-        print("TESTING: " + id)
+        log("TESTING: " + id)
         test_successed = True
 
         docker_project = DockerHelper.decompose_image_id(id)[0]
         if docker_project not in TEST_CASES:
-            print("Missing defined test cases for %s, fallback to base tests" % docker_project)
+            log("Missing defined test cases for %s, fallback to base tests" % docker_project)
             tests = TEST_CASES[DOCKER_REPO_SLIM]
         else:
             tests = TEST_CASES[docker_project]
@@ -174,18 +195,33 @@ class EmscriptenTester:
             # return False
 
         for test in tests:
-            print("Perform test `%s`" % test)
-            print("[TEST] %s" % test)
-            if subprocess.call(["docker run --rm -v $(pwd):/src {id} {test}".format(id=id, test=test)], shell=True):
-                log("[ERROR] Testing {id} failed".format(id=id))
-                print("-- ERROR")
-                test_successed = False
-            else:
-                print("-- OK")
+            log("Perform test `%s`" % test)
+            log("[TEST] %s" % test)
+            p = subprocess.Popen(["docker run --rm -v $(pwd):/src {id} {test}".format(id=id, test=test)],
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            out, err = p.communicate()
 
+            if err:
+                log(err)
+
+            if out:
+                log(out)
+
+            if p.returncode:
+                log("[ERROR] Testing {id} failed".format(id=id))
+                test_successed = False
+                
         if remove_image:
             subprocess.call(["docker rmi {id}".format(id=id)], shell=True)
 
+        if test_successed:
+            log("TEST: {} - SUCCESS".format(id), True)
+        else:
+            log("TEST: {} - FAIL".format(id), True)
+                
         return test_successed
 
 
@@ -272,7 +308,17 @@ def compile_image(image_id):
                 dashboard.set_step(r.groups()[0])
                 continue
 
-    log("[INFO] Compiled [{tag}] in: {time}".format(tag=image_id, time=str(datetime.datetime.now() - t_start)))
+            r = re.match(r'\] Built target (.+)', l)
+            if r:
+                dashboard.trace(r.groups()[0])
+                continue
+
+            r = re.match(r'Unpacking (.+) ', l)
+            if r:
+                dashboard.trace(r.groups()[0])
+                continue
+
+    log("[INFO] Compiled [{tag}] in: {time}".format(tag=image_id, time=str(datetime.datetime.now() - t_start)), True)
     return True
 
 def defer_push(image_name):
@@ -330,7 +376,11 @@ def build(args):
         dashboard.set_task(image_id, i + 1, len(images_to_compile))
         
         if compile_image(image_id) and EmscriptenTester.test_image(image_id):
+            log("{} - SUCCESS".format(image_id), True)
             defer_push(image_id)
+        else:
+            log("{} - FAIL".format(image_id), True)
+            
 
 def test(args):
     """Run tests"""
