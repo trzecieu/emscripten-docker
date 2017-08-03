@@ -32,5 +32,5 @@ command:
 ```
 
 ## License
-MIT
+[MIT](https://github.com/asRIA/emscripten-docker/blob/master/LICENSE)
 
