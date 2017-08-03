@@ -4,7 +4,7 @@ ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 ARG BUILD_DATE
 ARG VCS_REF
 
-LABEL maintainer="kontakt@trzeci.eu" \ 
+LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \
       org.label-schema.description="This image includes EMSDK, Emscripten and WebAssembly compiler and tools that are very required to compile sources." \
       org.label-schema.url="https://trzeci.eu" \
@@ -61,17 +61,25 @@ RUN echo "\n## Start building" \
     \
 &&  emscripten_version_file=$(find clang/*/src/emscripten-version.txt) \
 &&  mv $emscripten_version_file emscripten-version.txt \
-&&  rm -rf clang/*/src \ 
-&&  mkdir -p $(echo "$(dirname "$emscripten_version_file")") \ 
+&&  rm -rf clang/*/src \
+&&  rm -rf clang/*/*/lib \
+&&  rm -rf clang/*/*/docs \
+&&  rm -rf clang/*/*/tools \
+&&  mkdir -p $(echo "$(dirname "$emscripten_version_file")") \
 &&  mv emscripten-version.txt $emscripten_version_file \
     \
 &&  find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; \
+&&  find . -name "CMakeCache.txt" -exec rm {} \; \
 &&  find . -name "*.o" -exec rm {} \; \
 &&  find . -name "*.a" -exec rm {} \; \
 &&  find . -name "*.inc*" -exec rm {} \; \
+&&  find . -name "*.gen.tmp" -exec rm {} \; \
 &&  rm -fr .git bin node/*_32bit \
 &&  rm -rf emscripten/*/.git \
 &&  rm -rf emscripten/*/tests \
+&&  rm -rf emscripten/*/site \
+&&  rm -rf emscripten/*/docks \
+&&  rm -rf emscripten/*/media \
 &&  rm -rf zips \
     \
 &&  rm -fr /opt/cmake /usr/local/bin/cmake /cmake* \
@@ -99,7 +107,6 @@ RUN echo "\n## Start building" \
 &&  rm -fr /tmp/emscripten_test \
     \
 &&  echo "\n## Cleaning up" \
-&&  emcc --clear-cache --clear-ports \
 &&  cd $EMSDK \
 &&  find . -name "*.pyc" -exec rm {} \; \
 &&  cd / \
