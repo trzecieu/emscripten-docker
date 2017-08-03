@@ -36,7 +36,7 @@ RUN echo "\n## Start building" \
 &&  echo $EMSCRIPTEN_SDK | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
     \
 &&  echo "\n## Compile Emscripten" \
-&&  ./emsdk install node-4.1.1-64bit \
+&&  ./emsdk install node-4.1.1-64bit > /dev/null \
 &&  ln -sf $EMSDK/node/4.1.1_64bit/bin/node $EMSDK/node/4.1.1_64bit/bin/nodejs \
     \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
