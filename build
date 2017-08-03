@@ -246,7 +246,7 @@ def compile_image(image_id):
             "build", 
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
-            # "--build-arg", "BUILD_DATE="+datetime.datetime.now().isoformat('T'),
+            "--build-arg", "BUILD_DATE="+datetime.datetime.now().isoformat('T'),
             "--build-arg", "VCS_REF="+subprocess.check_output("git rev-parse --short HEAD".split(" ")).strip(),
             "docker/" + docker_project
         ], stdout=subprocess.PIPE)

@@ -17,18 +17,19 @@ LABEL maintainer="kontakt@trzeci.eu" \
 # ------------------------------------------------------------------------------
 
 RUN echo "## Start building" \
-	\
+    \
 &&	echo "## Update and install packages" \
 &&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
-		wget \
-		git-core \
-		ca-certificates \
-		build-essential \
-		ant \
-		python \
-		openjdk-7-jre-headless \
-		libidn11 \
-	\
+        wget \
+        git-core \
+        ca-certificates \
+        build-essential \
+        make \
+        ant \
+        python \
+        openjdk-7-jre-headless \
+        libidn11 \
+    \
 &&	echo "## Installing CMAKE" \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
@@ -38,18 +39,18 @@ RUN echo "## Start building" \
 &&		rm -fr /opt/cmake/bin/ccmake \
 &&		rm -fr /opt/cmake/bin/cpack \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
-	\
+    \
 &&	printf "JAVA = '$(which java)'\n" >> ~/.emscripten \
-	\
+    \
 &&	. /entrypoint \
 &&	emcc --version \
-	\
+    \
 &&	echo "## Compile Emscripten Ports" \
 &&	emcc --clear-cache --clear-ports \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
 &&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
 &&	rm -fr ~/.emscripten_ports \
-	\
+    \
 &&	echo "## Compile sample code" \
 &&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
 &&	printf '#include <iostream>\nint main(){std::cout<<"HELLO FROM DOCKER C++"<<std::endl;return 0;}' > test.cpp \
@@ -58,23 +59,23 @@ RUN echo "## Start building" \
 &&	em++ test.cpp -o test.js --closure 1 && nodejs test.js \
 &&	cd / \
 &&	rm -fr /tmp/emscripten_test \
-	\
+    \
 &&	echo "## Cleaning up" \
 &&	apt-mark manual make openjdk-7-jre-headless wget \
 &&	apt-get -y remove \
-	gcc \
-	perl \
+    gcc \
+    perl \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
 &&	apt-get -y autoremove \
-	\
+    \
 &&	rm -rf /var/lib/apt/lists/* \
 &&	rm -rf /var/cache/debconf/*-old \
 &&	rm -rf /usr/share/doc/* \
 &&	rm -rf /usr/share/man/?? \
 &&	rm -rf /usr/share/man/??_* \
 &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
-	\
+    \
 &&	echo "## Done"
 
 # SETUP SDK
