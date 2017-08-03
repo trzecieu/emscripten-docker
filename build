@@ -35,6 +35,7 @@ TEST_CASES = {
         "emcc src/test.cpp -o src/test.js && node src/test.js",
         "emcc src/test.cpp -o src/test.js && node src/test.js",
         "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
+        "emcc src/test.cpp -o src/test.js -s WASM=1 ",
         "nodejs --version",
         "python --version",
         "wget --version",

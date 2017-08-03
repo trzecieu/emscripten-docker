@@ -19,14 +19,13 @@ LABEL maintainer="kontakt@trzeci.eu" \
 RUN echo "## Start building" \
     \
 &&	echo "## Update and install packages" \
-&&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
+&&	apt-get -qq -y update && apt-get -qq install -y \
         wget \
         git-core \
         ca-certificates \
         build-essential \
         make \
         ant \
-        python \
         openjdk-7-jre-headless \
         libidn11 \
     \
@@ -61,9 +60,8 @@ RUN echo "## Start building" \
 &&	rm -fr /tmp/emscripten_test \
     \
 &&	echo "## Cleaning up" \
-&&	apt-mark manual make openjdk-7-jre-headless wget \
+&&	apt-mark manual make openjdk-7-jre-headless wget gcc \
 &&	apt-get -y remove \
-    gcc \
     perl \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
