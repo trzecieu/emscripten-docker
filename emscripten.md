@@ -60,7 +60,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 ## Support 
 * **GitHub / Issue tracker**: https://github.com/asRIA/emscripten-docker
 * **Docker: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
-* **Docker: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
+* **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
 * from **1.37.16** all further images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
