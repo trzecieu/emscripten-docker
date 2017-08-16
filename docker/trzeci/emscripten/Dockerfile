@@ -63,8 +63,6 @@ RUN echo "\n## Start building" \
     \
 &&	echo "\n## Cleaning up" \
 &&	apt-mark manual make openjdk-7-jre-headless wget gcc git \
-&&	apt-get -y remove \
-    perl \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
 &&	apt-get -y autoremove \
