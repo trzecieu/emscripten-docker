@@ -16,7 +16,7 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `make`: 4.0
   * `java`: OpenJDK 1.7.0_131
   * `git`: 2.1.4
-  * `perk`: 5
+  * `perl`: 5
   * `ant`
   * `ca-certificates`
   * `build-essential`
