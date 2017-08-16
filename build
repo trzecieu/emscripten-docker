@@ -355,7 +355,11 @@ def build(args):
     # list of build description: [EMBuild...]
     em_bulds = get_builds(emscripten_tags, args.update, args.branches, args.releases, args.no_32, args.no_64)
 
-    images_to_compile =  get_sdk_to_compile(em_bulds, docker_tags)
+    images_to_compile = []
+    for sdk in get_sdk_to_compile(em_bulds, docker_tags):
+        for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
+            images_to_compile.append("{}:{}".format(r, sdk))
+
     # if tag was given explicitly, then use it
     for sth in args.sdks:
         # sdk can be either: full docker image id, or a tag. 
@@ -364,7 +368,6 @@ def build(args):
         elif re.match(r'^\d+\.\d+\.\d+$', sth):
             for b in ["64", "32"]:
                 for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
-                    
                     images_to_compile.append("{r}:{t}".format(r=r, t=EMHelper.get_sdk_name_tag(sth, b)))
         elif sth in ["master", "incoming"]:
             for b in ["64", "32"]:
