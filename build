@@ -42,6 +42,7 @@ TEST_CASES = {
         "wget --version",
         "make --version",
         "cmake --version",
+        "git --version",
     ], 
 }
 

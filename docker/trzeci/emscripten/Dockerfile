@@ -21,7 +21,7 @@ RUN echo "\n## Start building" \
 &&	echo "\n## Update and install packages" \
 &&	apt-get -qq -y update && apt-get -qq install -y \
         wget \
-        git-core \
+        git \
         ca-certificates \
         build-essential \
         make \
@@ -62,7 +62,7 @@ RUN echo "\n## Start building" \
 &&	rm -fr /tmp/emscripten_test \
     \
 &&	echo "\n## Cleaning up" \
-&&	apt-mark manual make openjdk-7-jre-headless wget gcc \
+&&	apt-mark manual make openjdk-7-jre-headless wget gcc git \
 &&	apt-get -y remove \
     perl \
 &&	apt-get -y clean \
