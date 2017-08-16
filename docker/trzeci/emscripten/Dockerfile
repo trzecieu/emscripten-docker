@@ -19,7 +19,7 @@ LABEL maintainer="kontakt@trzeci.eu" \
 RUN echo "\n## Start building" \
     \
 &&	echo "\n## Update and install packages" \
-&&	apt-get -qq -y update && apt-get -qq install -y \
+&&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
         wget \
         git \
         ca-certificates \
