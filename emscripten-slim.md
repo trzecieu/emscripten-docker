@@ -1,8 +1,8 @@
 # Docker: emscripten-slim
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
 
-The minimal version what is require to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images. 
-This version has been utilized as a base version for https://hub.docker.com/r/trzeci/emscripten/ for tags 1.37.16 and newer.
+The minimal version what is required to compile C++/Rust code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images. 
+This version has been utilized as a base for https://hub.docker.com/r/trzeci/emscripten/ since tag 1.37.16.
 
 ## Structure
 Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/Dockerfile)
@@ -54,7 +54,8 @@ FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
 RUN ...
 # ...
 
-CMD ["/bin/bash"]; 
+CMD ["/bin/bash"];
+# ATM: This is a requirement to source /entrypoint
 ENTRYPOINT ["/entrypoint"]
 ```
 Doing so, don't forget about https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/ 
@@ -71,7 +72,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.17-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
-* from **1.37.16** all further images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile).
+* since **1.37.16** images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile).
 
 ### License
 MIT

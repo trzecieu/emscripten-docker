@@ -2,7 +2,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
 
 
-A complete container what is require to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images.
+A complete container what is required to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the complete tool for compilation what is easy to extend.
 Since tag 1.37.16 this containcer bases on https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## Structure
@@ -64,6 +64,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* since **1.37.18** it contains `perl` and `git` package
 * from **1.37.16** all further images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
 * from **1.37.10** images are bundled with `java`
 * from **1.36.7** images are bundled with `make` and `nodejs`
