@@ -11,7 +11,7 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `python`: **2.7**
   * `nodejs`: **4.1.1_64bit** (from EMSDK)
 
-`debian:jessie` has been chosen as a base system due it's popularity. Image has been optimized in order to have the lowest possible size.
+`debian:jessie` has been chosen as a base system due its popularity. Image has been optimized in order to have the lowest possible size.
 
 ## Tag schema
 
@@ -71,7 +71,6 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 ## History
 * since **1.37.19** Entrypoint (`/entrypoint`) is removed, what simplifies setup and adds a compatibility to CircleCI. [#12](https://github.com/asRIA/emscripten-docker/pull/12)
 * since **1.37.16** the image is compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile).
-
 
 ### License
 MIT

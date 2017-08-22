@@ -2,8 +2,8 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
 
 
-A complete container what is required to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the complete tool for compilation what is easy to extend.
-Since tag 1.37.16 this containcer bases on https://hub.docker.com/r/trzeci/emscripten-slim/
+A complete container what is require to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images.
+Since tag 1.37.16 this container bases on https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## Structure
 Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
