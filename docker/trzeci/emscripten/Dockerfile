@@ -1,9 +1,13 @@
 ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
 
+# ------------------------------------------------------------------------------
+
 ARG VCS_REF
 ARG BUILD_DATE
 ARG EMSCRIPTEN_SDK
+
+# ------------------------------------------------------------------------------
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten" \
@@ -39,17 +43,16 @@ RUN echo "\n## Start building" \
 &&		rm -fr /opt/cmake/bin/cpack \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
-&&	printf "JAVA = '$(which java)'\n" >> ~/.emscripten \
+&&	printf "JAVA='$(which java)'\n" >> $EM_CONFIG \
     \
-&&	. /entrypoint \
 &&	emcc --version \
     \
 &&	emcc --clear-cache --clear-ports \
     \
 &&	echo "\n## Compile Emscripten Ports" \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
-&&	rm -fr ~/.emscripten_cache/asmjs/ports-builds \
-&&	rm -fr ~/.emscripten_ports \
+&&	rm -fr $EM_CACHE/asmjs/ports-builds \
+&&	rm -fr $EM_PORTS \
     \
 &&	echo "\n## Compile sample code" \
 &&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \
@@ -76,10 +79,4 @@ RUN echo "\n## Start building" \
     \
 &&	echo "\n## Done"
 
-# SETUP SDK
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/jre
-
-WORKDIR /src
-
-CMD ["/bin/bash"]; 
-ENTRYPOINT ["/entrypoint"]

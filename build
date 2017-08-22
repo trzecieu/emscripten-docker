@@ -30,6 +30,7 @@ TEST_CASES = {
         "emcc src/test.cpp -o src/test.js && node src/test.js",
         "emcc src/test.cpp -o src/test.js -s WASM=1 ",
         "nodejs --version",
+        "node --version",
         "python --version",
     ],
     DOCKER_REPO : [
@@ -38,6 +39,7 @@ TEST_CASES = {
         "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
         "emcc src/test.cpp -o src/test.js -s WASM=1 ",
         "nodejs --version",
+        "node --version",
         "python --version",
         "wget --version",
         "make --version",
@@ -287,6 +289,7 @@ def compile_image(image_id):
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
             "--build-arg", "BUILD_DATE="+datetime.datetime.now().isoformat('T'),
+            # "--build-arg", "BUILD_DATE=0",
             "--build-arg", "VCS_REF="+subprocess.check_output("git rev-parse --short HEAD".split(" ")).strip(),
             "docker/" + docker_project
         ], stdout=subprocess.PIPE)

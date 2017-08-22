@@ -3,3 +3,5 @@ log.txt
 *.log
 queue.txt
 .vscode
+*.wasm
+*.wast

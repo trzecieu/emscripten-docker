@@ -1,8 +1,20 @@
 FROM debian:jessie
-ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 
+# ------------------------------------------------------------------------------
+
+ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 ARG BUILD_DATE
 ARG VCS_REF
+
+# ------------------------------------------------------------------------------
+
+ENV EMSDK /emsdk_portable
+ENV EM_CONFIG ${EMSDK}/.config
+ENV EM_CACHE ${EMSDK}/.cache
+ENV EM_PORTS ${EMSDK}/.ports
+ENV EMSCRIPTEN ${EMSDK}/sdk
+
+# ------------------------------------------------------------------------------
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \
@@ -14,9 +26,8 @@ LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.docker.dockerfile="/docker/trzeci/emscripten-slim/Dockerfile"
 
 # ------------------------------------------------------------------------------
+
 RUN echo "\n## Start building" \
-    \
-&&  EMSDK=/emsdk_portable \
     \
 &&  echo "\n## Update and install packages" \
 &&  apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
@@ -37,36 +48,60 @@ RUN echo "\n## Start building" \
     \
 &&  echo "\n## Compile Emscripten" \
 &&  ./emsdk install node-4.1.1-64bit > /dev/null \
-&&  ln -sf $EMSDK/node/4.1.1_64bit/bin/node $EMSDK/node/4.1.1_64bit/bin/nodejs \
-    \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
-&&  echo "\n## Configure Emscripten" \
+&&  echo "\n## Generate standard configuration" \
 &&  ./emsdk activate $EMSCRIPTEN_SDK \
 &&  ./emsdk construct_env > /dev/null \
 &&  sed -i -e 's/4.1.1_32bit/4.1.1_64bit/g' ~/.emscripten \
-&&  sed -i -e 's/4.1.1_32bit/4.1.1_64bit/g' ./emsdk_set_env.sh \
     \
-&&  . ./emsdk_set_env.sh \
+&&  echo "\n## Re-Configure Emscripten" \
+&&  printf "import os\n"                                                >> $EM_CONFIG \
+&&  printf "LLVM_ROOT='$EMSDK/llvm/clang/bin'\n"                        >> $EM_CONFIG \
+&&  printf "NODE_JS='$EMSDK/node/bin/node'\n"                           >> $EM_CONFIG \
+&&  printf "EMSCRIPTEN_ROOT='$EMSCRIPTEN'\n"                            >> $EM_CONFIG \
+&&  printf "EMSCRIPTEN_NATIVE_OPTIMIZER='$EMSDK/optimizer/optimizer'\n" >> $EM_CONFIG \
+&&  printf "SPIDERMONKEY_ENGINE=''\n"                                   >> $EM_CONFIG \
+&&  printf "V8_ENGINE=''\n"                                             >> $EM_CONFIG \
+&&  printf "TEMP_DIR='/tmp'\n"                                          >> $EM_CONFIG \
+&&  printf "COMPILER_ENGINE=NODE_JS\n"                                  >> $EM_CONFIG \
+&&  printf "JS_ENGINES=[NODE_JS]\n"                                     >> $EM_CONFIG \
+&&  cat $EM_CONFIG \
+    \
+&&  echo "\n## Move folders according to new structure" \
+&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT='(.*)'/\1/p" | xargs dirname | xargs -i mv {} {}/../clang \
+&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT='(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/llvm \
+&&  cat ~/.emscripten | sed -rn "s/NODE_JS='(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/nodejs \
+&&  rm -fr $EMSDK/node \
+&&  mv $EMSDK/nodejs $EMSDK/node \
+&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_ROOT='(.*)'/\1/p" | xargs -i mv {} $EMSCRIPTEN \
+&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_NATIVE_OPTIMIZER='(.*)'/\1/p" | xargs dirname | xargs -i mv {} $EMSDK/optimizer \
+&&  rm -fr $EMSDK/emscripten \
+&&  rm -fr $EMSDK/clang \
+&&  rm -fr $EMSDK/emsdk_set_env.sh \
+&&  rm -fr ~/.emscripten* \ 
     \
 &&  echo "\n## Compile Binaryen" \
 &&  $EMSCRIPTEN/embuilder.py build binaryen \
 &&  mkdir $EMSDK/binaryen \
-&&  mv ~/.emscripten_ports/binaryen/binaryen-*/bin $EMSDK/binaryen/bin \
-&&  printf "BINARYEN_ROOT = '$EMSDK/binaryen/'\n" >> ~/.emscripten \
-&&  sed -i "s PATH=\" PATH=\"$EMSDK/binaryen/bin: g" $EMSDK/emsdk_set_env.sh \
-&&  . ./emsdk_set_env.sh \
+&&  mv $EM_PORTS/binaryen/binaryen-*/bin $EMSDK/binaryen/bin \
+&&  printf "BINARYEN_ROOT='$EMSDK/binaryen'\n"  >> $EM_CONFIG \
+    \
+&&  echo "\n## Create links" \
+&&  for f in $EMSDK/llvm/clang/bin $EMSDK/node/bin $EMSDK/binaryen/bin $EMSDK/optimizer $EMSDK $EMSCRIPTEN; do \
+        find $f -maxdepth 1 -type f -executable | xargs -i bash -c 'ln -sf {} /usr/local/bin/$(basename {})'; \
+    done \
+&&  ln -sf $EMSDK/node/bin/node /usr/local/bin/nodejs \
+    \
     \
 &&  echo "\n## Cleaning up Emscripten Compilation" \
-    \
-&&  emscripten_version_file=$(find clang/*/src/emscripten-version.txt) \
-&&  mv $emscripten_version_file emscripten-version.txt \
-&&  rm -rf clang/*/src \
-&&  rm -rf clang/*/*/lib \
-&&  rm -rf clang/*/*/docs \
-&&  rm -rf clang/*/*/tools \
-&&  mkdir -p $(echo "$(dirname "$emscripten_version_file")") \
-&&  mv emscripten-version.txt $emscripten_version_file \
+&&  mv llvm/src/emscripten-version.txt emscripten-version.txt \
+&&  rm -rf llvm/src \
+&&  rm -rf llvm/*/lib \
+&&  rm -rf llvm/*/docs \
+&&  rm -rf llvm/*/tools \
+&&  mkdir -p llvm/src \
+&&  mv emscripten-version.txt llvm/src/emscripten-version.txt \
     \
 &&  find . -name "CMakeFiles" -type d -prune -exec rm -fr {} \; \
 &&  find . -name "CMakeCache.txt" -exec rm {} \; \
@@ -75,11 +110,11 @@ RUN echo "\n## Start building" \
 &&  find . -name "*.inc*" -exec rm {} \; \
 &&  find . -name "*.gen.tmp" -exec rm {} \; \
 &&  rm -fr .git bin node/*_32bit \
-&&  rm -rf emscripten/*/.git \
-&&  rm -rf emscripten/*/tests \
-&&  rm -rf emscripten/*/site \
-&&  rm -rf emscripten/*/docks \
-&&  rm -rf emscripten/*/media \
+&&  rm -rf sdk/.git \
+&&  rm -rf sdk/tests \
+&&  rm -rf sdk/site \
+&&  rm -rf sdk/docks \
+&&  rm -rf sdk/media \
 &&  rm -rf zips \
     \
 &&  rm -fr /opt/cmake /usr/local/bin/cmake /cmake* \
@@ -88,6 +123,7 @@ RUN echo "\n## Start building" \
 &&  cd / \
 &&  emcc --version \
 &&  nodejs --version \
+&&  node --version \
 &&  python --version \
 &&  which asm2wasm \
 &&  which llvm-ar \
@@ -107,9 +143,7 @@ RUN echo "\n## Start building" \
 &&  rm -fr /tmp/emscripten_test \
     \
 &&  echo "\n## Cleaning up" \
-&&  cd $EMSDK \
-&&  find . -name "*.pyc" -exec rm {} \; \
-&&  cd / \
+&&  find $EMSDK -name "*.pyc" -exec rm {} \; \
     \
 &&  apt-get -y remove \
         build-essential \
@@ -131,16 +165,10 @@ RUN echo "\n## Start building" \
 &&  rm -rf /usr/share/man/??_* \
 &&  cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
     \
-&&  echo "\n## Create entrypoint" \
-&&  printf '#!/bin/bash\n'                                      >> /entrypoint \
-&&  printf 'set -e\n'                                           >> /entrypoint \
-&&  printf ". $EMSDK/emsdk_set_env.sh ?> /dev/null\n"           >> /entrypoint \
-&&  printf 'exec "$@"\n'                                        >> /entrypoint \
+&&  echo "\n## Create mock entrypoint (compatibiluty)" \
+&&  printf '#!/bin/bash\nexec "$@"\n'                           > /entrypoint \
 &&  chmod 777 /entrypoint \
     \
 &&  echo "\n## Done"
 
 WORKDIR /src
-
-CMD ["/bin/bash"]
-ENTRYPOINT ["/entrypoint"]
