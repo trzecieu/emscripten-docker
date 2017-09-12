@@ -1,7 +1,7 @@
 # Docker: emscripten-slim
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
 
-The minimal version what is require to compile C++ code with [Emscripten](http://emscripten.org) to ASM.js or WebAssembly. The goal was to provide the best foundation for custom Docker images. 
+The minimal version what is require to compile C++ code with [Emscripten](http://emscripten.org) to ASM.js or WebAssembly (WASM). The goal was to provide the best foundation for custom Docker images. 
 This version has been utilized as a base version for https://hub.docker.com/r/trzeci/emscripten/ since 1.37.16 tags.
 
 ## Structure

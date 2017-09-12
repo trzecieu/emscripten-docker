@@ -26,6 +26,7 @@ RUN echo "\n## Start building" \
 &&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
         wget \
         git \
+        ssh-client \
         ca-certificates \
         build-essential \
         make \
@@ -44,6 +45,9 @@ RUN echo "\n## Start building" \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
 &&	printf "JAVA='$(which java)'\n" >> $EM_CONFIG \
+    \
+&&	sleep 2 \
+&&	touch ${EM_CONFIG}_sanity \
     \
 &&	emcc --version \
     \

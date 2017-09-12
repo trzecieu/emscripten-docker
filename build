@@ -45,6 +45,7 @@ TEST_CASES = {
         "make --version",
         "cmake --version",
         "git --version",
+        "which ssh",
         "perl --version",
     ], 
 }
