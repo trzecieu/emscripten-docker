@@ -18,6 +18,7 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `git`: **2.1.4**
   * `ant`: **1.9.4**
   * `perl`: **5**
+  * `ssh`
   * `ca-certificates`
   * `build-essential`
 
@@ -64,6 +65,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* since **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
 * since **1.37.19** image doesn't use entrypoint from the base image.
 * since **1.37.18** it contains `perl` and `git` package
 * since **1.37.16** images are compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
