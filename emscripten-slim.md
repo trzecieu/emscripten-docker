@@ -69,6 +69,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.21** Fixed missing `npm` command and changed permission to `$EM_CACHE` to 775
 * since **1.37.19** Entrypoint (`/entrypoint`) is removed, what simplifies setup and adds a compatibility to CircleCI. [#12](https://github.com/asRIA/emscripten-docker/pull/12)
 * since **1.37.16** the image is compiled from singe [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile).
 

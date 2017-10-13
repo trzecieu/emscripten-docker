@@ -169,6 +169,7 @@ RUN echo "\n## Start building" \
 &&  echo "\n## Create mock entrypoint (compatibiluty)" \
 &&  printf '#!/bin/bash\nexec "$@"\n'                           > /entrypoint \
 &&  chmod 777 /entrypoint \
+&&  chmod -R 775 ${EM_CACHE}* \
     \
 &&  echo "\n## Done"
 

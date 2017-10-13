@@ -65,6 +65,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.21** Fixed missing `ctest` command
 * since **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
 * since **1.37.19** image doesn't use entrypoint from the base image.
 * since **1.37.18** it contains `perl` and `git` package
