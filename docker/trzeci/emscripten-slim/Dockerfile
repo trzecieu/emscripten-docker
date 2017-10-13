@@ -90,6 +90,7 @@ RUN echo "\n## Start building" \
 &&  echo "\n## Create links" \
 &&  for f in $EMSDK/llvm/clang/bin $EMSDK/node/bin $EMSDK/binaryen/bin $EMSDK/optimizer $EMSDK $EMSCRIPTEN; do \
         find $f -maxdepth 1 -type f -executable | xargs -i bash -c 'ln -sf {} /usr/local/bin/$(basename {})'; \
+        find $f -maxdepth 1 -type l -executable | xargs -i bash -c 'ln -sf {} /usr/local/bin/$(basename {})'; \
     done \
 &&  ln -sf $EMSDK/node/bin/node /usr/local/bin/nodejs \
     \

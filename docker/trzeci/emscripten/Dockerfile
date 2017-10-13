@@ -43,6 +43,7 @@ RUN echo "\n## Start building" \
 &&		rm -fr /opt/cmake/bin/ccmake \
 &&		rm -fr /opt/cmake/bin/cpack \
 &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
+&&	ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest \
     \
 &&	printf "JAVA='$(which java)'\n" >> $EM_CONFIG \
     \
