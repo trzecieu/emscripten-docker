@@ -13,18 +13,22 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `nodejs`: **4.1.1_64bit** (from EMSDK)
 * Extra packages: 
   * `cmake`: **3.6.3**
-  * `make`: **4.0**
-  * `java`: **OpenJDK 1.7.0_131**
-  * `git`: **2.1.4**
-  * `ant`: **1.9.4**
-  * `perl`: **5**
-  * `ssh`
-  * `curl`
-  * `wget`
-  * `zip`
-  * `unzip`
-  * `ca-certificates`
-  * `build-essential`
+  * `ant` : **1.9.4-3**
+  * `build-essential` : **11.7**
+  * `ca-certificates` : **20141019+deb8u3**
+  * `curl` : **7.38.0-4+deb8u6**
+  * `gcc` : **4:4.9.2-2**
+  * `git` : **1:2.1.4-2.1+deb8u5**
+  * `inetutils-ping` : **2:1.9.2.39.3a460-3**
+  * `iproute2` : **3.16.0-2**
+  * `libidn11` : **1.29-1+deb8u2**
+  * `make` : **4.0-8.1**
+  * `openjdk-7-jre-headless` : **7u151-2.6.11-1~deb8u1**
+  * `openssh-client` : **1:6.7p1-5+deb8u3**
+  * `python` : **2.7.9-1**
+  * `unzip` : **6.0-16+deb8u3**
+  * `wget` : **1.16-1+deb8u2**
+  * `zip` : **3.0-8**
 
 ## Tag schema
 ### latest
