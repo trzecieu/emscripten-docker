@@ -25,6 +25,9 @@ RUN echo "\n## Start building" \
 &&	echo "\n## Update and install packages" \
 &&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
         wget \
+        curl \
+        zip \
+        unzip \
         git \
         ssh-client \
         ca-certificates \
@@ -81,6 +84,9 @@ RUN echo "\n## Start building" \
 &&	rm -rf /usr/share/man/?? \
 &&	rm -rf /usr/share/man/??_* \
 &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
+    \
+&&	echo "\n## Installed packages:" \
+&&	apt-mark showmanual | xargs -I % sh -c 'echo "  * \`%\` : **"$(xargs dpkg -s % | grep Version | sed  "s/Version: //")"**"' \
     \
 &&	echo "\n## Done"
 

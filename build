@@ -32,6 +32,7 @@ TEST_CASES = {
         "nodejs --version",
         "node --version",
         "python --version",
+        
     ],
     DOCKER_REPO : [
         "emcc src/test.cpp -o src/test.js && node src/test.js",
@@ -42,6 +43,9 @@ TEST_CASES = {
         "node --version",
         "python --version",
         "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip --version",
         "make --version",
         "cmake --version",
         "git --version",

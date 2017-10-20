@@ -35,7 +35,7 @@ Example: `sdk-master-32bit`
 Start volume should be mounted in `/src`. 
 For start point every Emscripten command is available. For the instance: emcc, em++, emmake, emar etc.
 
-To compile single file it could be called like:
+To compile a single file:
 `docker run --rm -v $(pwd):/src trzeci/emscripten-slim:sdk-tag-1.37.19-64bit emcc helloworld.cpp -o helloworld.js`
 
 Hello World:

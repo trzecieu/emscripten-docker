@@ -2,7 +2,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
 
 
-A complete container what is require to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images.
+A complete container what is required to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide the best foundation for custom Docker images.
 Since tag 1.37.16 this container bases on https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## Structure
@@ -19,6 +19,10 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `ant`: **1.9.4**
   * `perl`: **5**
   * `ssh`
+  * `curl`
+  * `wget`
+  * `zip`
+  * `unzip`
   * `ca-certificates`
   * `build-essential`
 
@@ -43,7 +47,7 @@ Example: `sdk-master-32bit`
 Start volume should be mounted in `/src`. 
 For start point every Emscripten command is available. For the instance: emcc, em++, emmake, emar etc.
 
-To compile single file it could be called like:
+To compile a single file:
 `docker run --rm -v $(pwd):/src trzeci/emscripten:sdk-tag-1.37.19-64bit emcc helloworld.cpp -o helloworld.js --closure 1`
 
 Hello World:
@@ -65,6 +69,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.23** Added `curl`, `zip`, `unzip`
 * **1.37.21** Fixed missing `ctest` command
 * since **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
 * since **1.37.19** image doesn't use entrypoint from the base image.
