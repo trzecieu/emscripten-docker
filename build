@@ -45,7 +45,7 @@ TEST_CASES = {
         "wget --version",
         "curl --version",
         "zip --version",
-        "unzip --version",
+        "unzip -version",
         "make --version",
         "cmake --version",
         "git --version",
