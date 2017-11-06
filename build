@@ -206,8 +206,16 @@ class EmscriptenTester:
         for test in tests:
             log("Perform test `%s`" % test)
             log("[TEST] %s" % test)
-            p = subprocess.Popen(["docker run --rm -v $(pwd):/src {id} {test}".format(id=id, test=test)],
-                shell=True,
+            cmd = [
+                "docker", "run", "--rm",
+                "-v", "{}:/src".format(os.getcwd()),
+                "-u", "emscripten",
+                id,
+                "bash", "-c",
+                test,
+            ]
+
+            p = subprocess.Popen(cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -222,7 +230,7 @@ class EmscriptenTester:
             if p.returncode:
                 log("[ERROR] Testing {id} failed".format(id=id))
                 test_successed = False
-                
+
         if remove_image:
             subprocess.call(["docker rmi {id}".format(id=id)], shell=True)
 
@@ -397,6 +405,8 @@ def build(args):
             defer_push(image_id)
         else:
             log("{} - FAIL".format(image_id), True)
+            if args.fast_fail:
+                exit(1)
             
 
 def test(args):
@@ -433,6 +443,7 @@ if __name__ == "__main__":
     parser_build.add_argument("--update", action="store_true", help="Update docker images that are arleady created and pushed")
     parser_build.add_argument("--branches", action="store_true", help="Update master and incomming images")
     parser_build.add_argument("--releases", action="store_true", help="Update released SDKs")
+    parser_build.add_argument("--fast-fail", action="store_true", help="Stops queue after first failure")
     
     parser_test = subparsers.add_parser("test", help="Test given tag(s) with Emscripten and WebAssembly compatibility")
     parser_test.set_defaults(function=test)

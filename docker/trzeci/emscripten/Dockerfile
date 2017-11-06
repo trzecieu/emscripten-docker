@@ -88,6 +88,7 @@ RUN echo "\n## Start building" \
 &&	echo "\n## Installed packages:" \
 &&	apt-mark showmanual | xargs -I % sh -c 'echo "  * \`%\` : **"$(xargs dpkg -s % | grep Version | sed  "s/Version: //")"**"' \
     \
+&&  chmod -R 777 ${EM_DATA} \
 &&	echo "\n## Done"
 
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/jre
