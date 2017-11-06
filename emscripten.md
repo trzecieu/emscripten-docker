@@ -68,13 +68,14 @@ docker run \
 node helloworld.js
 ```
 
-Teardown of compilation command: 
-part|description
+Teardown of compilation command:
+
+|part|description|
 |---|---|
 |`docker run`| A standard command to run a command in a container|
 |`--rm`|remove a container after execution|
 |`-v $(pwd):/src`|Mounting current folder from the host system, into `/src` of the image|
-|`-u emscripten`|(1.37.23+)Run a container as a non-root user `emscripten`, hence all files produced by this are accessible to non-root users|
+|`-u emscripten`|(1.37.23+) Run a container as a non-root user `emscripten`, hence all files produced by this are accessible to non-root users|
 |`trzeci/emscripten`|Get the latest tag of this container|
 |`emcc helloworld.cpp -o helloworld.js --closure 1`|Execute emcc command with following arguments inside container|
 
