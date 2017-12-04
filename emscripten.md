@@ -16,14 +16,14 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `ant` : **1.9.4-3**
   * `build-essential` : **11.7**
   * `ca-certificates` : **20141019+deb8u3**
-  * `curl` : **7.38.0-4+deb8u7**
+  * `curl` : **7.38.0-4+deb8u8**
   * `gcc` : **4:4.9.2-2**
   * `git` : **1:2.1.4-2.1+deb8u5**
   * `inetutils-ping` : **2:1.9.2.39.3a460-3**
   * `iproute2` : **3.16.0-2**
   * `libidn11` : **1.29-1+deb8u2**
   * `make` : **4.0-8.1**
-  * `openjdk-7-jre-headless` : **7u151-2.6.11-1~deb8u1**
+  * `openjdk-8-jre-headless` : **8u131-b11-1~bpo8+1**
   * `openssh-client` : **1:6.7p1-5+deb8u3**
   * `python` : **2.7.9-1**
   * `unzip` : **6.0-16+deb8u3**
@@ -92,7 +92,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
-* **1.37.23** Added `curl`, `zip`, `unzip`
+* **1.37.23** Added `curl`, `zip`, `unzip`, upgrade to openjdk-jre-8
 * **1.37.21** Fixed missing `ctest` command
 * **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
 * **1.37.19** image doesn't use entrypoint from the base image.

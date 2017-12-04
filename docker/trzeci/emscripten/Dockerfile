@@ -34,8 +34,11 @@ RUN echo "\n## Start building" \
         build-essential \
         make \
         ant \
-        openjdk-7-jre-headless \
         libidn11 \
+    \
+&&	echo "\n## Installing JRE 8" \
+&&	echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list \
+&&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends -t jessie-backports openjdk-8-jre-headless \
     \
 &&	echo "\n## Installing CMake" \
 &&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
@@ -73,7 +76,8 @@ RUN echo "\n## Start building" \
 &&	rm -fr /tmp/emscripten_test \
     \
 &&	echo "\n## Cleaning up" \
-&&	apt-mark manual make openjdk-7-jre-headless wget gcc git \
+&&	apt-mark manual make openjdk-8-jre-headless wget gcc git \
+&&	apt-get -y remove openjdk-7-jre-headless \
 &&	apt-get -y clean \
 &&	apt-get -y autoclean \
 &&	apt-get -y autoremove \
@@ -91,4 +95,4 @@ RUN echo "\n## Start building" \
 &&  chmod -R 777 ${EM_DATA} \
 &&	echo "\n## Done"
 
-ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64/jre
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
