@@ -24,11 +24,12 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `libidn11` : **1.29-1+deb8u2**
   * `make` : **4.0-8.1**
   * `openjdk-8-jre-headless` : **8u131-b11-1~bpo8+1**
-  * `openssh-client` : **1:6.7p1-5+deb8u3**
+  * `openssh-client` : **1:6.7p1-5+deb8u4**
   * `python` : **2.7.9-1**
   * `unzip` : **6.0-16+deb8u3**
   * `wget` : **1.16-1+deb8u4**
   * `zip` : **3.0-8**
+
 
 ## Tag schema
 ### latest
