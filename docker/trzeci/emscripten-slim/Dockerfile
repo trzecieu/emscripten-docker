@@ -54,13 +54,13 @@ RUN echo "\n## Start building" \
     \
 &&  echo "\n## Compile Emscripten" \
 &&  mkdir -p ${EM_DATA} \
-&&  ./emsdk install node-4.1.1-64bit > /dev/null \
+&&  ./emsdk install node-8.9.1-64bit > /dev/null \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
 &&  echo "\n## Generate standard configuration" \
 &&  ./emsdk activate $EMSCRIPTEN_SDK \
 &&  ./emsdk construct_env > /dev/null \
-&&  sed -i -e 's/4.1.1_32bit/4.1.1_64bit/g' ~/.emscripten \
+&&  sed -i -e 's/8.9.1_32bit/8.9.1_64bit/g' ~/.emscripten \
     \
 &&  echo "\n## Re-Configure Emscripten" \
 &&  printf "import os\n"                                                >> $EM_CONFIG \
