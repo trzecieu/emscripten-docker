@@ -41,9 +41,9 @@ RUN echo "\n## Start building" \
 &&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends -t jessie-backports openjdk-8-jre-headless \
     \
 &&	echo "\n## Installing CMake" \
-&&	wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
+&&	wget https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.sh -q \
 &&	mkdir /opt/cmake \
-&&	printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
+&&	printf "y\nn\n" | sh cmake-3.7.2-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
 &&		rm -fr cmake*.sh /opt/cmake/doc \
 &&		rm -fr /opt/cmake/bin/cmake-gui \
 &&		rm -fr /opt/cmake/bin/ccmake \

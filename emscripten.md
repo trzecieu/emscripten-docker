@@ -12,7 +12,7 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `python`: **2.7**
   * `nodejs`: **4.1.1_64bit** (from EMSDK)
 * Extra packages: 
-  * `cmake`: **3.6.3**
+  * `cmake`: **3.7.2**
   * `ant` : **1.9.4-3**
   * `build-essential` : **11.7**
   * `ca-certificates` : **20141019+deb8u3**
@@ -93,6 +93,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.29** upgrade to `cmake` 3.7.2
 * **1.37.23** Added `curl`, `zip`, `unzip`, upgrade to openjdk-jre-8
 * **1.37.21** Fixed missing `ctest` command
 * **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
