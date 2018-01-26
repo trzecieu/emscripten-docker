@@ -10,7 +10,7 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
 * Base system: **trzeci/emscripten-slim:**
 * Installed packages: 
   * `python`: **2.7**
-  * `nodejs`: **4.1.1_64bit** (from EMSDK)
+  * `nodejs`: **8.9.1_64bit** (from EMSDK)
 * Extra packages: 
   * `cmake`: **3.7.2**
   * `ant` : **1.9.4-3**

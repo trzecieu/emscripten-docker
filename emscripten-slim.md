@@ -9,7 +9,7 @@ Each tag was build from one [Dockerfile](https://github.com/asRIA/emscripten-doc
 * Base system: **debian:jessie**
 * Installed packages: 
   * `python`: **2.7**
-  * `nodejs`: **4.1.1_64bit** (from EMSDK)
+  * `nodejs`: **8.9.1_64bit** (from EMSDK)
 
 `debian:jessie` has been chosen as a base system due its popularity. Image has been optimized in order to have the lowest possible size.
 
