@@ -102,10 +102,14 @@ RUN echo "\n## Start building" \
 &&  ln -sf $EMSDK/node/bin/node /usr/local/bin/nodejs \
     \
     \
+&&  echo "\n## Preserve libclang.so" \
+&&  mv llvm/clang/lib/*.so* llvm/clang/ \
+&&  rm -rf llvm/*/lib/* \
+&&  mv llvm/clang/*.so* llvm/clang/lib \
+    \
 &&  echo "\n## Cleaning up Emscripten Compilation" \
 &&  mv llvm/src/emscripten-version.txt emscripten-version.txt \
 &&  rm -rf llvm/src \
-&&  rm -rf llvm/*/lib \
 &&  rm -rf llvm/*/docs \
 &&  rm -rf llvm/*/tools \
 &&  mkdir -p llvm/src \
