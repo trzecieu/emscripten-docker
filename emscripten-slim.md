@@ -88,6 +88,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.33** [#25](https://github.com/asRIA/emscripten-docker/pull/25) - Preserve libclang.so and libLTO.so
 * **1.37.28** [#22](https://github.com/asRIA/emscripten-docker/issues/22) - Switched to Node 8.9.1
 * **1.37.23** Moved all mutable files to `$EM_DATA`, created an user emscripten:emscripten (1000:1000)
 * **1.37.21** Fixed missing `npm` command and changed permission to `$EM_CACHE` to 775
