@@ -260,13 +260,15 @@ class DockerHelper:
         return (project, tag)
 
     @staticmethod
-    def push_image(image):
+    def push_image(image, clean=False):
         for i in repeat(None, 3):
             if subprocess.call(["docker", "push", image]):
                 log("[WARNING] Pushing {image} failed. Repeat.".format(image=image))
             else:
                 log("[INFO] Pushed tag: {image} ".format(image=image))
-                subprocess.call(["docker", "rmi", "-f", image])
+                if clean:
+                    log("[INFO] Removed local tag: {image} ".format(image=image))
+                    subprocess.call(["docker", "rmi", "-f", image])
                 return
         log("[ERROR] Pushing {image} failed.".format(image=image))
 
@@ -396,7 +398,10 @@ def build(args):
         else:
             images_to_compile.append(DOCKER_REPO_SLIM + ":" + sth)
             images_to_compile.append(DOCKER_REPO + ":" + sth)
-    
+
+    for i, image_id in enumerate(images_to_compile):
+        dashboard.log("* {}".format(image_id))
+
     for i, image_id in enumerate(images_to_compile):
         dashboard.set_task(image_id, i + 1, len(images_to_compile))
         
@@ -425,7 +430,7 @@ def push(args):
                 with open(QUEUE_FILE, 'w') as fout:
                     fout.writelines(data[1:])
                 if tag_to_send:
-                    DockerHelper.push_image(tag_to_send)
+                    DockerHelper.push_image(tag_to_send, args.clean)
         time.sleep(2)
 
 
@@ -452,6 +457,7 @@ if __name__ == "__main__":
     parser_test.add_argument("--project", help="Custom docker project")
 
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
+    parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
     parser_push.set_defaults(function=push)
 
     # parser.add_argument("--pusher", action="store_true", help="Pushes tags created by regular command")
