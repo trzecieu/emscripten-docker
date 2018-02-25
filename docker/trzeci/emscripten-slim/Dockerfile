@@ -160,7 +160,6 @@ RUN echo "\n## Start building" \
 &&  apt-get -y remove \
         build-essential \
         wget \
-        ca-certificates \
         git-core \
         git \
         gcc \

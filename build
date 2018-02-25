@@ -32,6 +32,7 @@ TEST_CASES = {
         "nodejs --version",
         "node --version",
         "python --version",
+        "emsdk install node-4.1.1-64bit", # tests if https is available
         
     ],
     DOCKER_REPO : [
