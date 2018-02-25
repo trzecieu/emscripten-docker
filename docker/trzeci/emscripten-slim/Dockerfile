@@ -52,8 +52,11 @@ RUN echo "\n## Start building" \
 &&  git clone --depth 1 https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK \
 &&  echo $EMSCRIPTEN_SDK | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
     \
-&&  echo "\n## Compile Emscripten" \
+&&  echo "\n## Create folder structure" \
 &&  mkdir -p ${EM_DATA} \
+&&  mkdir -p ${EMSDK}/zips \
+    \
+&&  echo "\n## Compile Emscripten" \
 &&  ./emsdk install node-8.9.1-64bit > /dev/null \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
@@ -86,7 +89,7 @@ RUN echo "\n## Start building" \
 &&  rm -fr $EMSDK/emscripten \
 &&  rm -fr $EMSDK/clang \
 &&  rm -fr $EMSDK/emsdk_set_env.sh \
-&&  rm -fr ~/.emscripten* \ 
+&&  rm -fr ~/.emscripten* \
     \
 &&  echo "\n## Compile Binaryen" \
 &&  $EMSCRIPTEN/embuilder.py build binaryen \
@@ -180,6 +183,7 @@ RUN echo "\n## Start building" \
 &&  printf '#!/bin/bash\nexec "$@"\n' > /entrypoint \
 &&  chmod 777 /entrypoint \
 &&  chmod -R 777 ${EM_DATA} \
+&&  chmod -R 777 ${EMSDK}/zips \
     \
 &&  echo "\n## Done"
 
