@@ -10,6 +10,7 @@ Each tag was build from one [Dockerfile](https://github.com/asRIA/emscripten-doc
 * Installed packages: 
   * `python`: **2.7**
   * `nodejs`: **8.9.1_64bit** (from EMSDK)
+  * `ca-certificates` : **20141019+deb8u3**
 
 `debian:jessie` has been chosen as a base system due its popularity. Image has been optimized in order to have the lowest possible size.
 
@@ -88,6 +89,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.37.34** [#27](https://github.com/asRIA/emscripten-docker/issues/27) - Keep `ca-certificates` to allow Python accessing https
 * **1.37.33** [#25](https://github.com/asRIA/emscripten-docker/pull/25) - Preserve libclang.so and libLTO.so
 * **1.37.28** [#22](https://github.com/asRIA/emscripten-docker/issues/22) - Switched to Node 8.9.1
 * **1.37.23** Moved all mutable files to `$EM_DATA`, created an user emscripten:emscripten (1000:1000)

@@ -130,7 +130,7 @@ RUN echo "\n## Start building" \
 &&  rm -rf sdk/site \
 &&  rm -rf sdk/docks \
 &&  rm -rf sdk/media \
-&&  rm -rf zips \
+&&  rm -rf zips/* \
     \
 &&  rm -fr /opt/cmake /usr/local/bin/cmake /cmake* \
     \
