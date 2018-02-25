@@ -275,7 +275,7 @@ class DockerHelper:
 
 # --------------VV------------- NOT REFACTORED YET --------------VV------------- 
 
-def get_builds(tags, update=False, branches=False, releases=False, b32=False, b64=False):
+def get_builds(tags, update=False, branches=None, releases=False, b32=False, b64=False):
     result = []
 
     bit_versions = []
@@ -287,10 +287,9 @@ def get_builds(tags, update=False, branches=False, releases=False, b32=False, b6
             for tag in tags:
                 sdk = EMHelper.get_sdk_name_tag(tag, bits)
                 result.append(EMBuild(sdk, update))
-        if branches:
-            for branch in ["incoming", "master"]:
-                sdk = EMHelper.get_sdk_name_branch(branch, bits)
-                result.append(EMBuild(sdk, True))
+        for branch in branches:
+            sdk = EMHelper.get_sdk_name_branch(branch, bits)
+            result.append(EMBuild(sdk, True))
     return result
 
 
@@ -372,7 +371,11 @@ def build(args):
     docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
 
     # list of build description: [EMBuild...]
-    em_bulds = get_builds(emscripten_tags, args.update, args.branches, args.releases, args.no_32, args.no_64)
+    branches = []
+    if args.master: branches.append("master")
+    if args.incoming: branches.append("incoming")
+
+    em_bulds = get_builds(emscripten_tags, args.update, branches, args.releases, args.no_32, args.no_64)
 
 
     images_to_compile = []
@@ -444,10 +447,12 @@ if __name__ == "__main__":
     parser_build = subparsers.add_parser("compile", help="Compile Docker images")
     parser_build.set_defaults(function=build)
     parser_build.add_argument("sdks", type=str, nargs='*', help="Explicitly provide list of Emscripten SDKs in format sdk-incoming-32bit or sdk-tag-1.37.17-32bit")
-    parser_build.add_argument("--no-32", action="store_true", help="Explicitly disable 32 images")
+    parser_build.add_argument("--no-32", action="store_true", help="Explicitly disable 32 images (set by default)")
     parser_build.add_argument("--no-64", action="store_false", help="Explicitly disable 64 images")
-    parser_build.add_argument("--update", action="store_true", help="Update docker images that are arleady created and pushed")
-    parser_build.add_argument("--branches", action="store_true", help="Update master and incomming images")
+    parser_build.add_argument("--update", action="store_true", help="Update docker images that are already created and pushed")
+    parser_build.add_argument("--branches", action="store_true", help="Update master and incoming images")
+    parser_build.add_argument("--master", action="store_true", help="Update master images")
+    parser_build.add_argument("--incoming", action="store_true", help="Update incoming images")
     parser_build.add_argument("--releases", action="store_true", help="Update released SDKs")
     parser_build.add_argument("--fast-fail", action="store_true", help="Stops queue after first failure")
     
