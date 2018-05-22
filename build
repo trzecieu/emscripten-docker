@@ -26,9 +26,8 @@ LOG_COMPILATION = "build.log"
 
 TEST_CASES = {
     DOCKER_REPO_SLIM : [
-        "emcc test.cpp -o test.js && node test.js",
-        "emcc test.cpp -o test.js && node test.js",
-        "emcc test.cpp -o test.js -s WASM=1 ",
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "nodejs --version",
         "node --version",
         "python --version",
@@ -36,10 +35,9 @@ TEST_CASES = {
         
     ],
     DOCKER_REPO : [
-        "emcc test.cpp -o test.js && node test.js",
-        "emcc test.cpp -o test.js && node test.js",
-        "emcc test.cpp -o test.js --closure 1 && node test.js",
-        "emcc test.cpp -o test.js -s WASM=1 ",
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "nodejs --version",
         "node --version",
         "python --version",
