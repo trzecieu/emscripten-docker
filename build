@@ -26,9 +26,9 @@ LOG_COMPILATION = "build.log"
 
 TEST_CASES = {
     DOCKER_REPO_SLIM : [
-        "emcc src/test.cpp -o src/test.js && node src/test.js",
-        "emcc src/test.cpp -o src/test.js && node src/test.js",
-        "emcc src/test.cpp -o src/test.js -s WASM=1 ",
+        "emcc test.cpp -o test.js && node test.js",
+        "emcc test.cpp -o test.js && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 ",
         "nodejs --version",
         "node --version",
         "python --version",
@@ -36,10 +36,10 @@ TEST_CASES = {
         
     ],
     DOCKER_REPO : [
-        "emcc src/test.cpp -o src/test.js && node src/test.js",
-        "emcc src/test.cpp -o src/test.js && node src/test.js",
-        "emcc src/test.cpp -o src/test.js --closure 1 && node src/test.js",
-        "emcc src/test.cpp -o src/test.js -s WASM=1 ",
+        "emcc test.cpp -o test.js && node test.js",
+        "emcc test.cpp -o test.js && node test.js",
+        "emcc test.cpp -o test.js --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 ",
         "nodejs --version",
         "node --version",
         "python --version",
@@ -207,9 +207,10 @@ class EmscriptenTester:
         for test in tests:
             log("Perform test `%s`" % test)
             log("[TEST] %s" % test)
+            volume = os.path.join(os.path.dirname(os.path.realpath(__file__)), "src")
             cmd = [
                 "docker", "run", "--rm",
-                "-v", "{}:/src".format(os.getcwd()),
+                "-v", "{}:/src".format(volume),
                 "-u", "emscripten",
                 id,
                 "bash", "-c",
