@@ -9,11 +9,18 @@ import json
 import re
 import sys
 
+# TODO: auto update latest
+# TODO: treat slim/normal/full as a packet - all of the have to finish in order to qualify build as a success
+# TODO: update *md files with installed packages only for the new version of latest
+# TODO: investigate how to update dockerhub description automatically, once it's pushed. 
+# TODO: investigate better mailing reports.
+# TODO: push as a service (without data file)
+# TODO: https://github.com/jwilder/docker-squash
+# TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
+
 from urllib import urlopen
 from itertools import repeat
 
-# TODO: https://github.com/jwilder/docker-squash
-# TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
 
 EMSDK_GIT_REPO = "https://github.com/kripken/emscripten/"
 DOCKER_REGISTRY = "registry.hub.docker.com"
@@ -55,6 +62,7 @@ TEST_CASES = {
 
 
 # Utils ------------------------------------------------------------------------
+
 class Dashboard:
     task = ""
     task_progress = ""
@@ -369,11 +377,11 @@ def build(args):
     # List of pushed tags to Docker, in format: ['sdk-master-32bit', ...]
     docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
 
-    # list of build description: [EMBuild...]
     branches = []
     if args.master: branches.append("master")
     if args.incoming: branches.append("incoming")
 
+    # list of build description: [EMBuild...]
     em_bulds = get_builds(emscripten_tags, args.update, branches, args.releases, args.no_32, args.no_64)
 
 
@@ -415,7 +423,20 @@ def build(args):
             log("{} - FAIL".format(image_id), True)
             if args.fast_fail:
                 exit(1)
-            
+
+def set_latest(args):
+    docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
+    # keep only versioned tags
+    docker_tags = list(filter(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x), docker_tags))
+    docker_tags = [tuple(re.match(r'.+(\d+)\.(\d+)\.(\d+).+', x).groups()[0:3]) for x in docker_tags]
+    docker_tags = sorted(docker_tags, reverse=True)
+    if docker_tags:
+        for repo in [DOCKER_REPO_SLIM, DOCKER_REPO]:
+            tag = "sdk-tag-{v}-64bit".format(v=".".join(docker_tags[0]))
+            subprocess.call(["docker pull {repo}:{tag}".format(repo=repo, tag=tag)], shell=True)
+            subprocess.call(["docker tag {repo}:{tag} {repo}:latest".format(repo=repo, tag=tag)], shell=True)
+            subprocess.call(["docker push {repo}:latest".format(repo=repo)], shell=True)
+
 
 def test(args):
     """Run tests"""
@@ -470,6 +491,9 @@ if __name__ == "__main__":
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
     parser_push.set_defaults(function=push)
+
+    parser_push = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
+    parser_push.set_defaults(function=set_latest)
 
     # parser.add_argument("--pusher", action="store_true", help="Pushes tags created by regular command")
     args = parser.parse_args()
