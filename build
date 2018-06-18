@@ -431,6 +431,7 @@ def set_latest(args):
     docker_tags = [tuple(re.match(r'.+(\d+)\.(\d+)\.(\d+).+', x).groups()[0:3]) for x in docker_tags]
     docker_tags = sorted(docker_tags, reverse=True)
     if docker_tags:
+        log("Set latest to: {}".format(".".join(docker_tags[0])), True)
         for repo in [DOCKER_REPO_SLIM, DOCKER_REPO]:
             tag = "sdk-tag-{v}-64bit".format(v=".".join(docker_tags[0]))
             subprocess.call(["docker pull {repo}:{tag}".format(repo=repo, tag=tag)], shell=True)

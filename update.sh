@@ -10,7 +10,11 @@ git pull
 
 set +x
 echo "Compile and push"
-./build compile --incoming --branches --fast-fail
+./build compile --branches --fast-fail
+./build push --no-block
+./build set_latest
+
+./build compile --incoming --fast-fail
 ./build push --no-block
 
 echo "DONE"
