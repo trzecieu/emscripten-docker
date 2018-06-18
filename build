@@ -425,6 +425,7 @@ def test(args):
 def push(args):
     """Push created tags, what are waiting in queue document """
     while True:
+        pushed = False
         if os.path.exists(QUEUE_FILE):
             with open(QUEUE_FILE, 'r') as fin:
                 data = fin.read().splitlines(True)
@@ -434,6 +435,10 @@ def push(args):
                     fout.writelines(data[1:])
                 if tag_to_send:
                     DockerHelper.push_image(tag_to_send, args.clean)
+                    pushed = True
+        if not pushed and args.no_block:
+            log("[INFO] Nothing to do here, queue is empty")
+            break
         time.sleep(2)
 
 
@@ -463,6 +468,7 @@ if __name__ == "__main__":
 
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
+    parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
     parser_push.set_defaults(function=push)
 
     # parser.add_argument("--pusher", action="store_true", help="Pushes tags created by regular command")
