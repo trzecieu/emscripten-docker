@@ -349,10 +349,10 @@ def compile_image(image_id):
     return True
 
 def defer_push(image_name):
+    queue = open(QUEUE_FILE, 'r').read().splitlines(True) if os.path.isfile(QUEUE_FILE) else []
+    queue.insert(0, image_name + "\n")
     with open(QUEUE_FILE, 'w+') as f:
-        data = f.read().splitlines(True)
-        data.insert(0, image_name + "\n")
-        f.writelines(data)
+        f.writelines(queue)
         log("[INFO] Defered pushing name: {name} ".format(name=image_name))
 
 
