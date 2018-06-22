@@ -63,7 +63,6 @@ RUN echo "\n## Start building" \
 &&  echo "\n## Generate standard configuration" \
 &&  ./emsdk activate $EMSCRIPTEN_SDK \
 &&  ./emsdk construct_env > /dev/null \
-&&  sed -i -e 's/8.9.1_32bit/8.9.1_64bit/g' ~/.emscripten \
     \
 &&  echo "\n## Re-Configure Emscripten" \
 &&  printf "import os\n"                                                >> $EM_CONFIG \
@@ -76,6 +75,7 @@ RUN echo "\n## Start building" \
 &&  printf "TEMP_DIR='/tmp'\n"                                          >> $EM_CONFIG \
 &&  printf "COMPILER_ENGINE=NODE_JS\n"                                  >> $EM_CONFIG \
 &&  printf "JS_ENGINES=[NODE_JS]\n"                                     >> $EM_CONFIG \
+&&  printf "BINARYEN_ROOT='$EMSDK/binaryen'\n"                          >> $EM_CONFIG \
 &&  cat $EM_CONFIG \
     \
 &&  echo "\n## Move folders according to new structure" \
@@ -86,16 +86,14 @@ RUN echo "\n## Start building" \
 &&  mv $EMSDK/nodejs $EMSDK/node \
 &&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_ROOT='(.*)'/\1/p" | xargs -i mv {} $EMSCRIPTEN \
 &&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_NATIVE_OPTIMIZER='(.*)'/\1/p" | xargs dirname | xargs -i mv {} $EMSDK/optimizer \
+    \
+&&  mv $EMSDK/binaryen/*binaryen/bin $EMSDK/binaryen/bin \
+&&  find binaryen -maxdepth 1 -mindepth 1 ! -name 'bin' -type d -exec rm -fr {} \; \
+    \
 &&  rm -fr $EMSDK/emscripten \
 &&  rm -fr $EMSDK/clang \
 &&  rm -fr $EMSDK/emsdk_set_env.sh \
 &&  rm -fr ~/.emscripten* \
-    \
-&&  echo "\n## Compile Binaryen" \
-&&  $EMSCRIPTEN/embuilder.py build binaryen \
-&&  mkdir $EMSDK/binaryen \
-&&  mv $EM_PORTS/binaryen/binaryen-*/bin $EMSDK/binaryen/bin \
-&&  printf "BINARYEN_ROOT='$EMSDK/binaryen'\n"  >> $EM_CONFIG \
     \
 &&  echo "\n## Create links" \
 &&  for f in $EMSDK/llvm/clang/bin $EMSDK/node/bin $EMSDK/binaryen/bin $EMSDK/optimizer $EMSDK $EMSCRIPTEN; do \

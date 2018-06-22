@@ -346,7 +346,7 @@ def compile_image(image_id):
                 continue
 
     log("[INFO] Compiled [{tag}] in: {time}".format(tag=image_id, time=str(datetime.datetime.now() - t_start)), True)
-    return False if p.returncode else False
+    return False if p.returncode else True
 
 def defer_push(image_name):
     queue = open(QUEUE_FILE, 'r').read().splitlines(True) if os.path.isfile(QUEUE_FILE) else []
