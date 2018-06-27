@@ -5,13 +5,17 @@
 This repository contains source files for Docker Hub projects: 
 
 ## trzeci/emscripten-slim
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/)
+[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
+[![Sanity](https://badges.herokuapp.com/travis/Quuxplusone/emscripten-docker?env=IMAGE=trzeci/emscripten-slim&label=hello)](https://travis-ci.org/Quuxplusone/emscripten-docker)
 
 * **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten-slim/
 * **ReadMe**: https://github.com/trzecieu/emscripten-docker/blob/master/emscripten-slim.md
 
 ## trzeci/emscripten
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/)
+[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
+[![Sanity](https://badges.herokuapp.com/travis/Quuxplusone/emscripten-docker?env=IMAGE=trzeci/emscripten&label=hello)](https://travis-ci.org/Quuxplusone/emscripten-docker)
 
 * **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten/
 * **ReadMe**: https://github.com/trzecieu/emscripten-docker/blob/master/emscripten.md
