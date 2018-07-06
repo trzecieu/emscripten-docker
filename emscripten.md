@@ -13,23 +13,25 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `nodejs`: **8.9.1_64bit** (from EMSDK)
 * Extra packages: 
   * `cmake`: **3.7.2**
+<!-- PACKAGES BEGIN -->
   * `ant` : **1.9.4-3**
   * `build-essential` : **11.7**
   * `ca-certificates` : **20141019+deb8u3**
-  * `curl` : **7.38.0-4+deb8u8**
+  * `curl` : **7.38.0-4+deb8u11**
   * `gcc` : **4:4.9.2-2**
-  * `git` : **1:2.1.4-2.1+deb8u5**
-  * `inetutils-ping` : **2:1.9.2.39.3a460-3**
+  * `git` : **1:2.1.4-2.1+deb8u6**
   * `iproute2` : **3.16.0-2**
+  * `iputils-ping` : **3:20121221-5+b2**
   * `libidn11` : **1.29-1+deb8u2**
   * `make` : **4.0-8.1**
-  * `openjdk-8-jre-headless` : **8u131-b11-1~bpo8+1**
+  * `openjdk-8-jre-headless` : **8u171-b11-1~bpo8+1**
   * `openssh-client` : **1:6.7p1-5+deb8u4**
   * `python` : **2.7.9-1**
+  * `python-pip` : **1.5.6-5**
   * `unzip` : **6.0-16+deb8u3**
-  * `wget` : **1.16-1+deb8u4**
+  * `wget` : **1.16-1+deb8u5**
   * `zip` : **3.0-8**
-
+<!-- PACKAGES END -->
 
 ## Tag schema
 ### latest
@@ -83,6 +85,7 @@ Teardown of compilation command:
 
 ## How to compile?
 0. Pull the latest https://github.com/asRIA/emscripten-docker
+0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular images. For older images you can check [a file](https://github.com/asRIA/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command + `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
 0. Compile [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
 
 Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where `sdk-tag-1.37.17-64bit` is an arbitrary tag)
@@ -93,6 +96,8 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.38.9** `/emsdk_portable` will be preserved as a git repos (with valid version of changeset)
+* **1.38.7** Version removed due problems with [emsdk](https://github.com/juj/emsdk/pull/156)
 * **1.37.29** upgrade to `cmake` 3.7.2
 * **1.37.23** Added `curl`, `zip`, `unzip`, upgrade to openjdk-jre-8
 * **1.37.21** Fixed missing `ctest` command

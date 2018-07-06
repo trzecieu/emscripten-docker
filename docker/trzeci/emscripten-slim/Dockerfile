@@ -3,6 +3,7 @@ FROM debian:jessie
 # ------------------------------------------------------------------------------
 
 ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
+ARG EMSDK_CHANGESET=master
 ARG BUILD_DATE
 ARG VCS_REF
 
@@ -49,7 +50,8 @@ RUN echo "\n## Start building" \
 &&  printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
 &&  ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
-&&  git clone --depth 1 https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK \
+# Update emscripten-tags.txt file manually with request version (optimization)
+&&  git clone https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK && git reset --hard $EMSDK_CHANGESET \
 &&  echo $EMSCRIPTEN_SDK | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
     \
 &&  echo "\n## Create folder structure" \
@@ -60,10 +62,13 @@ RUN echo "\n## Start building" \
 &&  ./emsdk install node-8.9.1-64bit > /dev/null \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
+# this generates configuration what contains all valid paths (in /root/.emscripten)
+# this form was used before --embeded flag was implemented
 &&  echo "\n## Generate standard configuration" \
 &&  ./emsdk activate $EMSCRIPTEN_SDK \
 &&  ./emsdk construct_env > /dev/null \
     \
+# As this image forces the structure, we can override config with our data
 &&  echo "\n## Re-Configure Emscripten" \
 &&  printf "import os\n"                                                >> $EM_CONFIG \
 &&  printf "LLVM_ROOT='$EMSDK/llvm/clang/bin'\n"                        >> $EM_CONFIG \
@@ -95,6 +100,7 @@ RUN echo "\n## Start building" \
 &&  rm -fr $EMSDK/emsdk_set_env.sh \
 &&  rm -fr ~/.emscripten* \
     \
+# The main goal is that there is no need to activate emscripten (or modify .bashrc etc..)
 &&  echo "\n## Create links" \
 &&  for f in $EMSDK/llvm/clang/bin $EMSDK/node/bin $EMSDK/binaryen/bin $EMSDK/optimizer $EMSDK $EMSCRIPTEN; do \
         find $f -maxdepth 1 -type f -executable | xargs -i bash -c 'ln -sf {} /usr/local/bin/$(basename {})'; \
@@ -108,6 +114,7 @@ RUN echo "\n## Start building" \
 &&  rm -rf llvm/*/lib/* \
 &&  mv llvm/clang/*.so* llvm/clang/lib \
     \
+# emscripten-version.txt is an essential file what has to be preserved
 &&  echo "\n## Cleaning up Emscripten Compilation" \
 &&  mv llvm/src/emscripten-version.txt emscripten-version.txt \
 &&  rm -rf llvm/src \
@@ -122,7 +129,7 @@ RUN echo "\n## Start building" \
 &&  find . -name "*.a" -exec rm {} \; \
 &&  find . -name "*.inc*" -exec rm {} \; \
 &&  find . -name "*.gen.tmp" -exec rm {} \; \
-&&  rm -fr .git bin node/*_32bit \
+&&  rm -fr bin node/*_32bit \
 &&  rm -rf sdk/.git \
 &&  rm -rf sdk/tests \
 &&  rm -rf sdk/site \
@@ -180,6 +187,7 @@ RUN echo "\n## Start building" \
 &&  echo "\n## Create a mock entrypoint (compatibility)" \
 &&  printf '#!/bin/bash\nexec "$@"\n' > /entrypoint \
 &&  chmod 777 /entrypoint \
+# Following folders are used in a compilation process, non-root (emscripten) user must have access to them
 &&  chmod -R 777 ${EM_DATA} \
 &&  chmod -R 777 ${EMSDK}/zips \
     \

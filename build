@@ -192,7 +192,7 @@ class EMHelper:
                     all_tags += [t]
             except:
                 pass
-        sorted(all_tags, cmp=version_compare)
+        all_tags = sorted(all_tags, cmp=version_compare)
         return list(filter(lambda x: x not in SDK_IGNORED, all_tags))
 
 
@@ -304,7 +304,7 @@ def get_builds(tags, update=False, branches=None, releases=False, b32=False, b64
     return result
 
 
-def compile_image(image_id):
+def compile_image(image_id, emsdk_cs):
     t_start = datetime.datetime.now()
     docker_project, emscripten_sdk = DockerHelper.decompose_image_id(image_id)
     log("[INFO] Start compiling [{i}]".format(i=image_id))
@@ -314,6 +314,7 @@ def compile_image(image_id):
             "build", 
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
+            "--build-arg", "EMSDK_CHANGESET=" + emsdk_cs,
             "--build-arg", "BUILD_DATE=" + datetime.datetime.now().isoformat('T'),
             # "--build-arg", "BUILD_DATE=0",
             "--build-arg", "VCS_REF=" + subprocess.check_output("git rev-parse --short HEAD".split(" ")).strip(),
@@ -420,7 +421,7 @@ def build(args):
     for i, image_id in enumerate(images_to_compile):
         dashboard.set_task(image_id, i + 1, len(images_to_compile))
         
-        if compile_image(image_id) and EmscriptenTester.test_image(image_id):
+        if compile_image(image_id, args.emsdk_cs) and EmscriptenTester.test_image(image_id):
             log("{} - SUCCESS".format(image_id), True)
             defer_push(image_id)
         else:
@@ -485,6 +486,7 @@ if __name__ == "__main__":
     parser_build.add_argument("--incoming", action="store_true", help="Update incoming images")
     parser_build.add_argument("--releases", action="store_true", help="Update released SDKs")
     parser_build.add_argument("--fast-fail", action="store_true", help="Stops queue after first failure")
+    parser_build.add_argument("--emsdk-cs", default="master", help="Explicitly use given branch/changeset of juj/emsdk")
     
     parser_test = subparsers.add_parser("test", help="Test given tag(s) with Emscripten and WebAssembly compatibility")
     parser_test.set_defaults(function=test)

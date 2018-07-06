@@ -62,6 +62,8 @@ RUN echo "\n## Start building" \
     \
 &&	echo "\n## Compile Emscripten Ports" \
 &&	$EMSCRIPTEN/embuilder.py build ALL \
+    \
+#   Manual remove cache / ports in order to keep precompiled libc/libcxx
 &&	rm -fr $EM_CACHE/asmjs/ports-builds \
 &&	rm -fr $EM_PORTS \
     \
