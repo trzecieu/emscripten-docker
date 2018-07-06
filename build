@@ -31,6 +31,10 @@ SDK_MIN = "1.37.16"
 QUEUE_FILE = "queue.txt"
 LOG_COMPILATION = "build.log"
 
+SDK_IGNORED = [
+    "1.38.7", # malformed due an incompatibility with EMSDK release
+]
+
 TEST_CASES = {
     DOCKER_REPO_SLIM : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -189,7 +193,7 @@ class EMHelper:
             except:
                 pass
         sorted(all_tags, cmp=version_compare)
-        return all_tags
+        return list(filter(lambda x: x not in SDK_IGNORED, all_tags))
 
 
 class EmscriptenTester:
