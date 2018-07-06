@@ -8,14 +8,13 @@ This version has been utilized as a base version for https://hub.docker.com/r/tr
 Each tag was build from one [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile)
 * Base system: **debian:jessie**
 * Installed packages: 
-  * `nodejs`: **8.9.1_64bit** (from EMSDK)
-<!-- PACKAGES BEGIN -->
   * `ca-certificates` : **20141019+deb8u3**
   * `iproute2` : **3.16.0-2**
   * `iputils-ping` : **3:20121221-5+b2**
   * `python` : **2.7.9-1**
   * `python-pip` : **1.5.6-5**
-<!-- PACKAGES END -->
+* Extra packages:
+  * `nodejs`: **8.9.1_64bit** (from EMSDK)
 
 `debian:jessie` has been chosen as a base system due its popularity. Image has been optimized in order to have the lowest possible size.
 
@@ -84,7 +83,7 @@ Doing so, don't forget about [Dockerfile best practices](https://docs.docker.com
 
 ## How to compile?
 0. Pull the latest https://github.com/asRIA/emscripten-docker
-0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular images. For older images you can check [a file](https://github.com/asRIA/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command + `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
+0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular image. For older images you can check [a file](https://github.com/asRIA/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
 0. Compile [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile)
 
 Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (where `sdk-tag-1.37.19-64bit` is an arbitrary tag)

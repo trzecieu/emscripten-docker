@@ -7,13 +7,8 @@ Since tag 1.37.16 this container bases on https://hub.docker.com/r/trzeci/emscri
 
 ## Structure
 Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
-* Base system: **trzeci/emscripten-slim:**
+* Base system: **trzeci/emscripten-slim**
 * Installed packages: 
-  * `python`: **2.7**
-  * `nodejs`: **8.9.1_64bit** (from EMSDK)
-* Extra packages: 
-  * `cmake`: **3.7.2**
-<!-- PACKAGES BEGIN -->
   * `ant` : **1.9.4-3**
   * `build-essential` : **11.7**
   * `ca-certificates` : **20141019+deb8u3**
@@ -31,7 +26,8 @@ Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/
   * `unzip` : **6.0-16+deb8u3**
   * `wget` : **1.16-1+deb8u5**
   * `zip` : **3.0-8**
-<!-- PACKAGES END -->
+* Extra packages:
+  * `cmake`: **3.7.2**
 
 ## Tag schema
 ### latest
@@ -85,7 +81,7 @@ Teardown of compilation command:
 
 ## How to compile?
 0. Pull the latest https://github.com/asRIA/emscripten-docker
-0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular images. For older images you can check [a file](https://github.com/asRIA/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command + `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
+0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular image. For older images you can check [a file](https://github.com/asRIA/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
 0. Compile [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
 
 Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where `sdk-tag-1.37.17-64bit` is an arbitrary tag)
