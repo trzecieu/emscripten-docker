@@ -18,7 +18,8 @@ import sys
 # TODO: https://github.com/jwilder/docker-squash
 # TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
 
-from urllib import urlopen
+# from urllib import urlopen
+from urllib2 import Request, urlopen
 from itertools import repeat
 
 
@@ -284,6 +285,53 @@ class DockerHelper:
                 return
         log("[ERROR] Pushing {image} failed.".format(image=image))
 
+class DockerRegistry:
+    def __init__(self):
+        pass
+
+    def login(self):
+        # usefull to access some Docker Hub functionality
+        r = Request("https://hub.docker.com/v2/users/login/", 
+            json.dumps({
+                "username" : os.environ["DOCKER_NAME"],
+                "password" : os.environ["DOCKER_PASS"]
+            }),
+            {'Content-Type': 'application/json'}
+        )
+        try:
+            self.access_token = json.loads(urlopen(r).read())["token"]
+        except Exception as e:
+            print("Wrong docker login data.")
+            
+
+    def get_auth_header(self, repository, headers=None):
+        # TODO: Add a logic what caches token
+        headers = headers if headers else {}
+        r = Request("https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repository}:pull".format(repository=repository))
+        data = urlopen(r).read()
+        headers["Authorization"] = "Bearer " + json.loads(data)["token"]
+        return headers
+
+    def get_manifest(self, repository, reference):
+        r = Request(
+            "https://index.docker.io/v2/{repository}/manifests/{reference}".format(repository=repository, reference=reference),
+            headers=self.get_auth_header(repository, {
+                "Accept" : "application/vnd.docker.distribution.manifest.v2+json"
+            })
+        )
+        return json.loads(urlopen(r).read())
+
+    def get_digest(self, repository, reference):
+        manifest = self.get_manifest(repository, reference)
+        return manifest["config"]["digest"]
+
+    def add_authorization_header(self, headers):
+        headers["Authorization"] = "JWT " + self.access_token
+        return headers
+
+    def authorized(self):
+        return self.access_token is not None
+
 # --------------VV------------- NOT REFACTORED YET --------------VV------------- 
 
 def get_builds(tags, update=False, branches=None, releases=False, b32=False, b64=False):
@@ -430,19 +478,25 @@ def build(args):
                 exit(1)
 
 def set_latest(args):
+    registry = DockerRegistry()
+    
     docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
-    # keep only versioned tags
     docker_tags = list(filter(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x), docker_tags))
-    docker_tags = [tuple(re.match(r'.+(\d+)\.(\d+)\.(\d+).+', x).groups()[0:3]) for x in docker_tags]
-    docker_tags = sorted(docker_tags, reverse=True)
-    if docker_tags:
-        log("Set latest to: {}".format(".".join(docker_tags[0])), True)
+    docker_tags = map(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x).groups()[0], docker_tags)
+    docker_tags = sorted(docker_tags, cmp=version_compare, reverse=True)
+
+    digest_latest = registry.get_digest("trzeci/emscripten", "latest")
+    digest_recent = registry.get_digest("trzeci/emscripten", "sdk-tag-{v}-64bit".format(v=docker_tags[0]))
+
+    if digest_latest != digest_recent or args.force:
+        log("Set latest to: {}".format(docker_tags[0]), True)
         for repo in [DOCKER_REPO_SLIM, DOCKER_REPO]:
-            tag = "sdk-tag-{v}-64bit".format(v=".".join(docker_tags[0]))
+            tag = "sdk-tag-{v}-64bit".format(v=docker_tags[0])
             subprocess.call(["docker pull {repo}:{tag}".format(repo=repo, tag=tag)], shell=True)
             subprocess.call(["docker tag {repo}:{tag} {repo}:latest".format(repo=repo, tag=tag)], shell=True)
             subprocess.call(["docker push {repo}:latest".format(repo=repo)], shell=True)
-
+    else:
+        print("It looks up to date.")
 
 def test(args):
     """Run tests"""
@@ -499,8 +553,9 @@ if __name__ == "__main__":
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
     parser_push.set_defaults(function=push)
 
-    parser_push = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
-    parser_push.set_defaults(function=set_latest)
+    parser_set_latest = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
+    parser_set_latest.add_argument("--force", action="store_true", help="Ignore comparing digests")
+    parser_set_latest.set_defaults(function=set_latest)
 
     # parser.add_argument("--pusher", action="store_true", help="Pushes tags created by regular command")
     args = parser.parse_args()
