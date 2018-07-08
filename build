@@ -9,8 +9,6 @@ import json
 import re
 import sys
 
-# TODO: auto update latest
-# TODO: treat slim/normal/full as a packet - all of the have to finish in order to qualify build as a success
 # TODO: update *md files with installed packages only for the new version of latest
 # TODO: investigate how to update dockerhub description automatically, once it's pushed. 
 # TODO: investigate better mailing reports.
@@ -27,6 +25,7 @@ EMSDK_GIT_REPO = "https://github.com/kripken/emscripten/"
 DOCKER_REGISTRY = "registry.hub.docker.com"
 DOCKER_REPO = "trzeci/emscripten"
 DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
+DOCKER_REPO_VARIANTS = [DOCKER_REPO_SLIM, DOCKER_REPO]
 
 SDK_MIN = "1.37.16"
 QUEUE_FILE = "queue.txt"
@@ -139,20 +138,28 @@ def log(text, console=False):
     with open(LOG_COMPILATION, "a") as f:
         f.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 
+
+sort_variants_lut = {
+    "emscripten-slim" : 0,
+    "emscripten" : 1,
+}
+def sort_variants(x, y):
+    return sort_variants_lut[x.project] - sort_variants_lut[y.project]
+
 def version_compare(x, y):
     a = 1 if is_version_at_least(x, y) else 0
     b = 1 if is_version_at_least(y, x) else 0
     return a - b
 
 def is_version_at_least(ver, target):
-    ver = ver.split('.')
-    target = target.split('.')
+    ver = map(lambda x: int(x) if x.isdigit() else 0, ver.split('.'))
+    target = map(lambda x: int(x) if x.isdigit() else 0, target.split('.'))
     while len(ver) < len(target):
-        ver += ['0']
+        ver += [0]
     for i in range(len(ver)):
-        if int(ver[i]) < int(target[i]):
+        if ver[i] < target[i]:
             return False
-        elif int(ver[i]) > int(target[i]):
+        elif ver[i] > target[i]:
             return True
     return True
 
@@ -181,7 +188,6 @@ class EMHelper:
     def get_sdk_name_branch(branch, bits):
         return "sdk-{branch}-{bits}bit".format(branch=branch, bits=bits)
 
-
     @staticmethod
     def get_emscripten_tags(min_version):
         tags = subprocess.check_output(["git", 'ls-remote', '--tags', EMSDK_GIT_REPO]).decode("utf-8").strip().split("\n")
@@ -193,9 +199,18 @@ class EMHelper:
                     all_tags += [t]
             except:
                 pass
-        all_tags = sorted(all_tags, cmp=version_compare)
-        return list(filter(lambda x: x not in SDK_IGNORED, all_tags))
+        result = sorted(all_tags, cmp=version_compare, reverse=True)
+        result = list(filter(lambda x: x not in SDK_IGNORED, all_tags))
+        result = map(lambda x: str(x), all_tags)
+        return result
 
+    @staticmethod
+    def expand_tags_to_variants(tags):
+        result = set()
+        for t in tags:
+            for r in DOCKER_REPO_VARIANTS:
+                result.add(r + ":" + t)
+        return result
 
 class EmscriptenTester:
     @staticmethod
@@ -257,14 +272,11 @@ class EmscriptenTester:
 
 class DockerHelper:
     @staticmethod
-    def get_server_tags(repo):
+    def pushed_tags(repo):
         api = "https://{registry}/v1/repositories/{repo}/tags".format(repo=repo, registry=DOCKER_REGISTRY)
         response = urlopen(api)
         data = json.loads(str(response.read()))
-        result = []
-        for node in data:
-            result.append(str(node["name"]))
-        return result
+        return map(lambda x: str(x["name"]), data)
 
     @staticmethod
     def decompose_image_id(image_id):
@@ -332,23 +344,39 @@ class DockerRegistry:
     def authorized(self):
         return self.access_token is not None
 
+class DockerNameDecompose:
+    def __init__(self, full_name):
+        m = re.match(r'(\S+)/(\S+)\:sdk-(.*)-(?:64|32)bit(?:_(\w+))?', full_name)
+        self.full_name = full_name
+        if m:
+            self.valid = True
+            self.namespace = m.groups()[0]
+            self.project = m.groups()[1]
+            self.name = m.groups()[2].split("-")[-1]
+            self.base_system = m.groups()[3] if len(m.groups()) > 3 else ""
+        else:
+            self.valid = False
+
+    def __str__(self):
+        return self.full_name
+
+class CompilationSet:
+    def __init__(self, name, variants=None):
+        self.name = name
+        self.variants = variants[:] if variants else []
+
+
 # --------------VV------------- NOT REFACTORED YET --------------VV------------- 
 
-def get_builds(tags, update=False, branches=None, releases=False, b32=False, b64=False):
+def get_builds(tags, update=False, branches=None, releases=False, bits="64"):
     result = []
-
-    bit_versions = []
-    bit_versions.append("32") if b32 else None
-    bit_versions.append("64") if b64 else None
-
-    for bits in bit_versions:
-        if releases:
-            for tag in tags:
-                sdk = EMHelper.get_sdk_name_tag(tag, bits)
-                result.append(EMBuild(sdk, update))
-        for branch in branches:
-            sdk = EMHelper.get_sdk_name_branch(branch, bits)
-            result.append(EMBuild(sdk, True))
+    if releases:
+        for tag in tags:
+            sdk = EMHelper.get_sdk_name_tag(tag, bits)
+            result.append(EMBuild(sdk, update))
+    for branch in branches:
+        sdk = EMHelper.get_sdk_name_branch(branch, bits)
+        result.append(EMBuild(sdk, True))
     return result
 
 
@@ -356,7 +384,7 @@ def compile_image(image_id, emsdk_cs):
     t_start = datetime.datetime.now()
     docker_project, emscripten_sdk = DockerHelper.decompose_image_id(image_id)
     log("[INFO] Start compiling [{i}]".format(i=image_id))
-    with open(LOG_COMPILATION, "a") as f:
+    with open("build_{}.log".format(image_id.replace("/","_")), "w") as f:
         p = subprocess.Popen([
             "docker", 
             "build", 
@@ -406,7 +434,7 @@ def defer_push(image_name):
     queue.insert(0, image_name + "\n")
     with open(QUEUE_FILE, 'w+') as f:
         f.writelines(queue)
-        log("[INFO] Defered pushing name: {name} ".format(name=image_name))
+        log("[INFO] Deferred pushing name: {name} ".format(name=image_name))
 
 
 def get_sdk_to_compile(em_builds, docker_tags):
@@ -422,65 +450,127 @@ def get_sdk_to_compile(em_builds, docker_tags):
 
 # ------------------------------------------------------------------------------
 
-def build(args):
-    """Build images, and push tags to the queue"""
-
+def get_variants_to_compile(args):
     # ["1.23.4", ...]
     emscripten_tags = EMHelper.get_emscripten_tags(SDK_MIN)
-    # List of pushed tags to Docker, in format: ['sdk-master-32bit', ...]
-    docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
 
-    branches = []
-    if args.master: branches.append("master")
-    if args.incoming: branches.append("incoming")
+    # List of pushed tags to Docker, in format: ['sdk-master-32bit', 'sdk-tag-1.38.8-64bit', ...]
+    docker_tags = DockerHelper.pushed_tags(DOCKER_REPO)
 
-    # list of build description: [EMBuild...]
-    em_bulds = get_builds(emscripten_tags, args.update, branches, args.releases, args.no_32, args.no_64)
+    # like master, incoming
+    branches_to_compile = set()
 
+    # like 1.33.1 - any valid tag what's pushed to emscripten
+    versions_to_compile = set()
+    # valid tag what's used in this project - regardles it's emscripten, emscripten-slim or other.
+    tags_to_compile = set()
 
-    images_to_compile = []
-    for sdk in get_sdk_to_compile(em_bulds, docker_tags):
-        for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
-            images_to_compile.append("{}:{}".format(r, sdk))
+    # every possible variant what's needed to be compiled
+    # It's a full Docker name: namespace/project:tag
+    variants_to_compile = set()
+    
+    if args.incoming or args.branches:
+        branches_to_compile.add("incoming")
+    if args.master or args.branches:
+        branches_to_compile.add("master")
 
-    bit_versions = []
-    bit_versions.append("32") if args.no_32 else None
-    bit_versions.append("64") if args.no_64 else None
+    if args.releases:
+        for v in emscripten_tags:
+            tag = EMHelper.get_sdk_name_tag(v, args.bits)
+            if tag not in docker_tags:
+                versions_to_compile.add(v)
+
     # if tag was given explicitly, then use it
     for sth in args.sdks:
         # sdk can be either: full docker image id, or a tag. 
         if sth.find(":") >= 0:
-            images_to_compile.append(sth)
-        elif re.match(r'^\d+\.\d+\.\d+$', sth):
-            for b in bit_versions:
-                for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
-                    images_to_compile.append("{r}:{t}".format(r=r, t=EMHelper.get_sdk_name_tag(sth, b)))
-        elif sth in ["master", "incoming"]:
-            for b in bit_versions:
-                for r in [DOCKER_REPO_SLIM, DOCKER_REPO]:
-                    images_to_compile.append("{r}:{t}".format(r=r, t=EMHelper.get_sdk_name_branch(sth, b)))
+            variants_to_compile.add(sth)
+        elif re.match(r'^\d+\.\d+\.\d+$', sth): # it's a version number: 1.12.4
+            versions_to_compile.add(sth)
+        elif sth in ["master", "incoming"]: # it's a branch name
+            branches_to_compile.add(sth)
         else:
-            images_to_compile.append(DOCKER_REPO_SLIM + ":" + sth)
-            images_to_compile.append(DOCKER_REPO + ":" + sth)
+            # assuming that 'sth' is a valid DockerHub tag
+            tags_to_compile.add(sth)
 
-    for i, image_id in enumerate(images_to_compile):
-        dashboard.log("* {}".format(image_id))
+    # populate tags_to_compile
+    for b in branches_to_compile:
+        tags_to_compile.add(EMHelper.get_sdk_name_branch(b, args.bits))
+    for v in versions_to_compile:
+        tags_to_compile.add(EMHelper.get_sdk_name_tag(v, args.bits))
 
-    for i, image_id in enumerate(images_to_compile):
-        dashboard.set_task(image_id, i + 1, len(images_to_compile))
-        
-        if compile_image(image_id, args.emsdk_cs) and EmscriptenTester.test_image(image_id):
-            log("{} - SUCCESS".format(image_id), True)
-            defer_push(image_id)
+    # populate variants to compile
+    variants_to_compile = variants_to_compile.union(EMHelper.expand_tags_to_variants(tags_to_compile))
+    return list(variants_to_compile)
+
+def create_compilation_sets(variants):
+    """takes a set of possible compilation variants and create a list of atomic sets"""
+    """each atomic set contains one or more variants, in order to mark those compilation successful, every variant has to succeeded"""
+    sets = dict()
+
+    # simplified logic groups only by version/tag 
+    # sdk-master-32bit', 'sdk-tag-1.38.8-64bit
+    for v in variants:
+        variant = DockerNameDecompose(v)
+        if variant.valid:
+            if variant.name not in sets:
+                sets[variant.name] = CompilationSet(variant.name)
+            sets[variant.name].variants.append(variant)
         else:
-            log("{} - FAIL".format(image_id), True)
+            log("{} tag name looks incorect!".format(v), True)
+    
+    # sort sets
+    result = sorted(sets.values(), key=lambda x: x.name, cmp=version_compare, reverse=True)
+    # sort variants in sets
+    for r in result:
+        r.variants = sorted(r.variants, cmp=sort_variants)
+    
+    return result
+
+def compile(args):
+    """Build images, and push tags to the queue"""
+    variants = get_variants_to_compile(args)
+    sets = create_compilation_sets(variants)
+
+    total_images = 0
+    for s in sets:
+        dashboard.log("* {}".format(s.name))
+        total_images += len(s.variants)
+        for v in s.variants:
+            dashboard.log("  * {}".format(v.full_name))
+
+    success = True
+    for s in sets:
+        set_compiled = True
+        for i, v in enumerate(s.variants):
+            image_id = v.full_name
+            dashboard.set_task(image_id, i + 1, len(s.variants))
+
+            if compile_image(image_id, args.emsdk_cs) and EmscriptenTester.test_image(image_id) :
+                log("{} - SUCCESS".format(image_id), True)
+            else:
+                log("{} - FAIL".format(image_id), True)
+                set_compiled = False
+                break
+
+        if set_compiled:
+            # reversed, because defer push always puts new element in front of queue.
+            for v in s.variants[::-1]:
+                defer_push(v.full_name)
+        else:
+            success = False
             if args.fast_fail:
-                exit(1)
+                break
+
+    if not success:
+        log("At least one compilation set has failed to compile", True)
+        exit(1)
+
 
 def set_latest(args):
     registry = DockerRegistry()
     
-    docker_tags = DockerHelper.get_server_tags(DOCKER_REPO)
+    docker_tags = DockerHelper.pushed_tags(DOCKER_REPO)
     docker_tags = list(filter(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x), docker_tags))
     docker_tags = map(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x).groups()[0], docker_tags)
     docker_tags = sorted(docker_tags, cmp=version_compare, reverse=True)
@@ -490,7 +580,7 @@ def set_latest(args):
 
     if digest_latest != digest_recent or args.force:
         log("Set latest to: {}".format(docker_tags[0]), True)
-        for repo in [DOCKER_REPO_SLIM, DOCKER_REPO]:
+        for repo in DOCKER_REPO_VARIANTS:
             tag = "sdk-tag-{v}-64bit".format(v=docker_tags[0])
             subprocess.call(["docker pull {repo}:{tag}".format(repo=repo, tag=tag)], shell=True)
             subprocess.call(["docker tag {repo}:{tag} {repo}:latest".format(repo=repo, tag=tag)], shell=True)
@@ -529,12 +619,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Emscripten Image generator')
     subparsers = parser.add_subparsers(title="command", help="Main work command")
 
-    parser_build = subparsers.add_parser("compile", help="Compile Docker images")
-    parser_build.set_defaults(function=build)
+    parser_build = subparsers.add_parser("compile", help="Compile Docker images.")
+    parser_build.set_defaults(function=compile)
     parser_build.add_argument("sdks", type=str, nargs='*', help="Explicitly provide list of Emscripten SDKs in format sdk-incoming-32bit or sdk-tag-1.37.17-32bit")
-    parser_build.add_argument("--no-32", action="store_true", help="Explicitly disable 32 images (set by default)")
-    parser_build.add_argument("--no-64", action="store_false", help="Explicitly disable 64 images")
-    parser_build.add_argument("--update", action="store_true", help="Update docker images that are already created and pushed")
+    parser_build.add_argument("--bits", default="64", choices=["32","64"], help="Target bit architecture")
     parser_build.add_argument("--branches", action="store_true", help="Update master and incoming images")
     parser_build.add_argument("--master", action="store_true", help="Update master images")
     parser_build.add_argument("--incoming", action="store_true", help="Update incoming images")
