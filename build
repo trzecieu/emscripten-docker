@@ -496,7 +496,7 @@ def set_latest(args):
             subprocess.call(["docker tag {repo}:{tag} {repo}:latest".format(repo=repo, tag=tag)], shell=True)
             subprocess.call(["docker push {repo}:latest".format(repo=repo)], shell=True)
     else:
-        print("It looks up to date.")
+        print("No need to update 'latest' tag, it's already set for " + docker_tags[0])
 
 def test(args):
     """Run tests"""
