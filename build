@@ -199,9 +199,9 @@ class EMHelper:
                     all_tags += [t]
             except:
                 pass
-        result = sorted(all_tags, cmp=version_compare, reverse=True)
-        result = list(filter(lambda x: x not in SDK_IGNORED, all_tags))
         result = map(lambda x: str(x), all_tags)
+        result = sorted(result, cmp=version_compare, reverse=True)
+        result = list(filter(lambda x: x not in SDK_IGNORED, result))
         return result
 
     @staticmethod
