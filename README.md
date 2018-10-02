@@ -1,5 +1,8 @@
 # Emscripten Docker
-This repository contains source files for Docker Hub projects:
+[![Build Status](https://jenkins.trzeci.eu/buildStatus/icon?job=public/emscripten-docker.release)](https://jenkins.trzeci.eu/job/public/job/emscripten-docker.release/)
+
+
+This repository contains source files for Docker Hub projects: 
 
 ## trzeci/emscripten-slim
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
