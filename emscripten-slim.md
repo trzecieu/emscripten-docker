@@ -94,6 +94,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.38.13** Base image changed to **debian:stretch**
 * **1.38.9** `/emsdk_portable` will be preserved as a git repos (with valid version of changeset)
 * **1.38.7** Version removed due problems with [emsdk]
 * **1.37.34** [#27](https://github.com/asRIA/emscripten-docker/issues/27) - Keep `ca-certificates` to allow Python accessing https
