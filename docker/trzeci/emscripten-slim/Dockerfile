@@ -62,7 +62,7 @@ RUN echo "\n## Start building" \
 &&  ./emsdk install node-8.9.1-64bit > /dev/null \
 &&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
-# this generates configuration what contains all valid paths (in /root/.emscripten)
+# this generates configuration that contains all valid paths (in /root/.emscripten)
 # this form was used before --embeded flag was implemented
 &&  echo "\n## Generate standard configuration" \
 &&  ./emsdk activate $EMSCRIPTEN_SDK \
@@ -114,7 +114,7 @@ RUN echo "\n## Start building" \
 &&  rm -rf llvm/*/lib/* \
 &&  mv llvm/clang/*.so* llvm/clang/lib \
     \
-# emscripten-version.txt is an essential file what has to be preserved
+# emscripten-version.txt is an essential file that has to be preserved
 &&  echo "\n## Cleaning up Emscripten Compilation" \
 &&  mv llvm/src/emscripten-version.txt emscripten-version.txt \
 &&  rm -rf llvm/src \
@@ -132,7 +132,13 @@ RUN echo "\n## Start building" \
 &&  rm -fr bin node/*_32bit \
 &&  rm -rf sdk/.git \
 &&  rm -rf sdk/tests \
+
+# Issue #34: emcc.txt file is essencial for error free execution of emcc
+&&  mv sdk/site/build/text/docs/tools_reference/emcc.txt emcc.txt \
 &&  rm -rf sdk/site \
+&&  mkdir -p sdk/site/build/text/docs/tools_reference/ \
+&&  mv emcc.txt sdk/site/build/text/docs/tools_reference/emcc.txt \
+
 &&  rm -rf sdk/docks \
 &&  rm -rf sdk/media \
 &&  rm -rf zips/* \
