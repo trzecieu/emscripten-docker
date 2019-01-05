@@ -93,6 +93,7 @@ Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where
 
 ## History
 * **1.38.22** [#35](https://github.com/asRIA/emscripten-docker/issues/35) upgrade to `cmake` 3.12.2
+* **1.38.17** Version ignored due problems with [Emscripten]
 * **1.38.9** `/emsdk_portable` will be preserved as a git repos (with valid version of changeset)
 * **1.38.7** Version removed due problems with [emsdk](https://github.com/juj/emsdk/pull/156)
 * **1.37.29** upgrade to `cmake` 3.7.2

@@ -33,6 +33,7 @@ LOG_COMPILATION = "build.log"
 
 SDK_IGNORED = [
     "1.38.7", # malformed due an incompatibility with EMSDK release
+    "1.38.17", # ignored due an SDK error
 ]
 
 TEST_CASES = {
