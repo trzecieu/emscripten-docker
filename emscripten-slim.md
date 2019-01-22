@@ -94,6 +94,7 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+* **1.38.26** [#36](https://github.com/asRIA/emscripten-docker/issues/36) - Reduce image size from 330MB to 189MB
 * **1.38.20** [#34](https://github.com/asRIA/emscripten-docker/issues/34) - Fix error when `emcc` tries to read internal documentation
 * **1.38.17** Version ignored due problems with [Emscripten]
 * **1.38.13** Base image changed to **debian:stretch**

@@ -50,8 +50,10 @@ RUN echo "\n## Start building" \
 &&  printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
 &&  ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
-# Update emscripten-tags.txt file manually with request version (optimization)
 &&  git clone https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK && git reset --hard $EMSDK_CHANGESET \
+# Patch emsdk in order to allow compile dynamic libs - size optimization
+&&  sed -i "s/'-DLLVM_INCLUDE_EXAMPLES=OFF', /'-DLLVM_INCLUDE_EXAMPLES=OFF', '-DLLVM_LINK_LLVM_DYLIB=ON', '-DLLVM_BUILD_LLVM_DYLIB=ON', /g" emsdk \
+# Update emscripten-tags.txt file manually with request version (optimization)
 &&  echo $EMSCRIPTEN_SDK | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
     \
 &&  echo "\n## Create folder structure" \
@@ -84,13 +86,13 @@ RUN echo "\n## Start building" \
 &&  cat $EM_CONFIG \
     \
 &&  echo "\n## Move folders according to new structure" \
-&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT='(.*)'/\1/p" | xargs dirname | xargs -i mv {} {}/../clang \
-&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT='(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/llvm \
-&&  cat ~/.emscripten | sed -rn "s/NODE_JS='(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/nodejs \
+&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT ?= ?'(.*)'/\1/p" | xargs dirname | xargs -i mv {} {}/../clang \
+&&  cat ~/.emscripten | sed -rn "s/LLVM_ROOT ?= ?'(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/llvm \
+&&  cat ~/.emscripten | sed -rn "s/NODE_JS ?= ?'(.*)'/\1/p" | xargs dirname | xargs dirname | xargs -i mv {} $EMSDK/nodejs \
 &&  rm -fr $EMSDK/node \
 &&  mv $EMSDK/nodejs $EMSDK/node \
-&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_ROOT='(.*)'/\1/p" | xargs -i mv {} $EMSCRIPTEN \
-&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_NATIVE_OPTIMIZER='(.*)'/\1/p" | xargs dirname | xargs -i mv {} $EMSDK/optimizer \
+&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_ROOT ?= ?'(.*)'/\1/p" | xargs -i mv {} $EMSCRIPTEN \
+&&  cat ~/.emscripten | sed -rn "s/EMSCRIPTEN_NATIVE_OPTIMIZER ?= ?'(.*)'/\1/p" | xargs dirname | xargs -i mv {} $EMSDK/optimizer \
     \
 &&  mv $EMSDK/binaryen/*binaryen/bin $EMSDK/binaryen/bin \
 &&  find binaryen -maxdepth 1 -mindepth 1 ! -name 'bin' -type d -exec rm -fr {} \; \
@@ -107,12 +109,6 @@ RUN echo "\n## Start building" \
         find $f -maxdepth 1 -type l -executable | xargs -i bash -c 'ln -sf {} /usr/local/bin/$(basename {})'; \
     done \
 &&  ln -sf $EMSDK/node/bin/node /usr/local/bin/nodejs \
-    \
-    \
-&&  echo "\n## Preserve libclang.so" \
-&&  mv llvm/clang/lib/*.so* llvm/clang/ \
-&&  rm -rf llvm/*/lib/* \
-&&  mv llvm/clang/*.so* llvm/clang/lib \
     \
 # emscripten-version.txt is an essential file that has to be preserved
 &&  echo "\n## Cleaning up Emscripten Compilation" \
