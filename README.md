@@ -34,6 +34,14 @@ command:
     push               Runs a service what will push created images
 ```
 
+## Who uses this image? 
+
+* https://github.com/medialize/sass.js
+* https://github.com/jasoncharnes/run.rb
+* https://github.com/GoogleChromeLabs/webm-wasm
+* And many more that I'm proud of each!
+
+
 ## License
 [MIT](https://github.com/asRIA/emscripten-docker/blob/master/LICENSE)
 
