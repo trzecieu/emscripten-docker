@@ -8,26 +8,26 @@ Since tag 1.37.16 this container bases on https://hub.docker.com/r/trzeci/emscri
 ## Structure
 Each tag was build from [Dockerfile](https://github.com/asRIA/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
 * Base system: **trzeci/emscripten-slim**
-* Installed packages: 
-  * `ant` : **1.9.4-3**
-  * `build-essential` : **11.7**
-  * `ca-certificates` : **20141019+deb8u3**
-  * `curl` : **7.38.0-4+deb8u11**
-  * `gcc` : **4:4.9.2-2**
-  * `git` : **1:2.1.4-2.1+deb8u6**
-  * `iproute2` : **3.16.0-2**
-  * `iputils-ping` : **3:20121221-5+b2**
-  * `libidn11` : **1.29-1+deb8u2**
-  * `make` : **4.0-8.1**
-  * `openjdk-8-jre-headless` : **8u171-b11-1~bpo8+1**
-  * `openssh-client` : **1:6.7p1-5+deb8u4**
-  * `python` : **2.7.9-1**
-  * `python-pip` : **1.5.6-5**
-  * `unzip` : **6.0-16+deb8u3**
-  * `wget` : **1.16-1+deb8u5**
-  * `zip` : **3.0-8**
+* Installed packages:
+  * `ant` : **1.9.9-1+deb9u1**
+  * `build-essential` : **12.3**
+  * `ca-certificates` : **20161130+nmu1+deb9u1**
+  * `curl` : **7.52.1-5+deb9u9**
+  * `gcc` : **4:6.3.0-4**
+  * `git` : **1:2.11.0-3+deb9u4**
+  * `iproute2` : **4.9.0-1+deb9u1**
+  * `iputils-ping` : **3:20161105-1**
+  * `libidn11` : **1.33-1**
+  * `make` : **4.1-9.1**
+  * `openjdk-8-jre-headless` : **8u181-b13-2~deb9u1**
+  * `openssh-client` : **1:7.4p1-10+deb9u4**
+  * `python` : **2.7.13-2**
+  * `python-pip` : **9.0.1-2**
+  * `unzip` : **6.0-21**
+  * `wget` : **1.18-5+deb9u2**
+  * `zip` : **3.0-11+b1**
 * Extra packages:
-  * `cmake`: **3.7.2**
+  * `cmake`: **3.12.2**
 
 ## Tag schema
 ### latest

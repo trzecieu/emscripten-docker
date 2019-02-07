@@ -51,8 +51,6 @@ RUN echo "\n## Start building" \
 &&  ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
     \
 &&  git clone https://github.com/juj/emsdk.git $EMSDK && cd $EMSDK && git reset --hard $EMSDK_CHANGESET \
-# Patch emsdk in order to allow compile dynamic libs - size optimization
-&&  sed -i "s/'-DLLVM_INCLUDE_EXAMPLES=OFF', /'-DLLVM_INCLUDE_EXAMPLES=OFF', '-DLLVM_LINK_LLVM_DYLIB=ON', '-DLLVM_BUILD_LLVM_DYLIB=ON', /g" emsdk \
 # Update emscripten-tags.txt file manually with request version (optimization)
 &&  echo $EMSCRIPTEN_SDK | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
     \
@@ -62,7 +60,8 @@ RUN echo "\n## Start building" \
     \
 &&  echo "\n## Compile Emscripten" \
 &&  ./emsdk install node-8.9.1-64bit > /dev/null \
-&&  ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
+# Compile llvm with dynamic libs support (size optimization)
+&&  LLVM_CMAKE_ARGS=-DLLVM_LINK_LLVM_DYLIB=ON,-DLLVM_LINK_LLVM_DYLIB=ON ./emsdk install --build=MinSizeRel $EMSCRIPTEN_SDK \
     \
 # this generates configuration that contains all valid paths (in /root/.emscripten)
 # this form was used before --embeded flag was implemented
