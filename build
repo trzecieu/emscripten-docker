@@ -21,11 +21,19 @@ from urllib2 import Request, urlopen
 from itertools import repeat
 
 
-EMSDK_GIT_REPO = "https://github.com/kripken/emscripten/"
+EMSDK_GIT_REPO = "https://github.com/emscripten-core/emscripten/"
 DOCKER_REGISTRY = "registry.hub.docker.com"
+
 DOCKER_REPO = "trzeci/emscripten"
 DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
-DOCKER_REPO_VARIANTS = [DOCKER_REPO_SLIM, DOCKER_REPO]
+DOCKER_REPO_UBUNTU = "trzeci/emscripten-ubuntu"
+
+DOCKER_REPO_VARIANTS = [
+    DOCKER_REPO_SLIM, 
+    DOCKER_REPO,
+    DOCKER_REPO,
+    DOCKER_REPO_UBUNTU,
+]
 
 SDK_MIN = "1.37.16"
 QUEUE_FILE = "queue.txt"
@@ -47,6 +55,23 @@ TEST_CASES = {
         
     ],
     DOCKER_REPO : [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "nodejs --version",
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+    ], 
+    DOCKER_REPO_UBUNTU : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
@@ -143,6 +168,7 @@ def log(text, console=False):
 sort_variants_lut = {
     "emscripten-slim" : 0,
     "emscripten" : 1,
+    "emscripten-ubuntu" : 2,
 }
 def sort_variants(x, y):
     return sort_variants_lut[x.project] - sort_variants_lut[y.project]
@@ -238,6 +264,7 @@ class EmscriptenTester:
             cmd = [
                 "docker", "run", "--rm",
                 "-v", "{}:/src".format(volume),
+                "-w", "/src",
                 "-u", "emscripten",
                 id,
                 "bash", "-c",
@@ -461,12 +488,13 @@ def get_variants_to_compile(args):
     # like master, incoming
     branches_to_compile = set()
 
-    # like 1.33.1 - any valid tag what's pushed to emscripten
+    # like 1.33.1 - any valid tag that's pushed to emscripten
     versions_to_compile = set()
-    # valid tag what's used in this project - regardles it's emscripten, emscripten-slim or other.
+
+    # valid tag that's used in this project - regardles it's emscripten, emscripten-slim or other.
     tags_to_compile = set()
 
-    # every possible variant what's needed to be compiled
+    # every possible variant that's needed to be compiled
     # It's a full Docker name: namespace/project:tag
     variants_to_compile = set()
     

@@ -15,7 +15,7 @@ LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.url="https://trzeci.eu" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/asRIA/emscripten-docker" \
+      org.label-schema.vcs-url="https://github.com/trzecieu/emscripten-docker" \
       org.label-schema.docker.dockerfile="/docker/trzeci/emscripten/Dockerfile"
 
 # ------------------------------------------------------------------------------
