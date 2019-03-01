@@ -31,7 +31,6 @@ DOCKER_REPO_UBUNTU = "trzeci/emscripten-ubuntu"
 DOCKER_REPO_VARIANTS = [
     DOCKER_REPO_SLIM, 
     DOCKER_REPO,
-    DOCKER_REPO,
     DOCKER_REPO_UBUNTU,
 ]
 
@@ -208,12 +207,12 @@ class EMBuild:
 
 class EMHelper:
     @staticmethod
-    def get_sdk_name_tag(tag, bits):
-        return "sdk-tag-{tag}-{bits}bit".format(tag=tag, bits=bits)
+    def get_sdk_name_tag(tag):
+        return "sdk-tag-{tag}-64bit".format(tag=tag)
 
     @staticmethod
-    def get_sdk_name_branch(branch, bits):
-        return "sdk-{branch}-{bits}bit".format(branch=branch, bits=bits)
+    def get_sdk_name_branch(branch):
+        return "sdk-{branch}-64bit".format(branch=branch)
 
     @staticmethod
     def get_emscripten_tags(min_version):
@@ -374,7 +373,7 @@ class DockerRegistry:
 
 class DockerNameDecompose:
     def __init__(self, full_name):
-        m = re.match(r'(\S+)/(\S+)\:sdk-(.*)-(?:64|32)bit(?:_(\w+))?', full_name)
+        m = re.match(r'(\S+)/(\S+)\:sdk-(.*)-64bit(?:_(\w+))?', full_name)
         self.full_name = full_name
         if m:
             self.valid = True
@@ -396,14 +395,14 @@ class CompilationSet:
 
 # --------------VV------------- NOT REFACTORED YET --------------VV------------- 
 
-def get_builds(tags, update=False, branches=None, releases=False, bits="64"):
+def get_builds(tags, update=False, branches=None, releases=False):
     result = []
     if releases:
         for tag in tags:
-            sdk = EMHelper.get_sdk_name_tag(tag, bits)
+            sdk = EMHelper.get_sdk_name_tag(tag)
             result.append(EMBuild(sdk, update))
     for branch in branches:
-        sdk = EMHelper.get_sdk_name_branch(branch, bits)
+        sdk = EMHelper.get_sdk_name_branch(branch)
         result.append(EMBuild(sdk, True))
     return result
 
@@ -503,10 +502,10 @@ def get_variants_to_compile(args):
     if args.master or args.branches:
         branches_to_compile.add("master")
 
+    # compile every release that isn't pushed to docker registry
     if args.releases:
         for v in emscripten_tags:
-            tag = EMHelper.get_sdk_name_tag(v, args.bits)
-            if tag not in docker_tags:
+            if EMHelper.get_sdk_name_tag(v) not in docker_tags:
                 versions_to_compile.add(v)
 
     # if tag was given explicitly, then use it
@@ -524,9 +523,9 @@ def get_variants_to_compile(args):
 
     # populate tags_to_compile
     for b in branches_to_compile:
-        tags_to_compile.add(EMHelper.get_sdk_name_branch(b, args.bits))
+        tags_to_compile.add(EMHelper.get_sdk_name_branch(b))
     for v in versions_to_compile:
-        tags_to_compile.add(EMHelper.get_sdk_name_tag(v, args.bits))
+        tags_to_compile.add(EMHelper.get_sdk_name_tag(v))
 
     # populate variants to compile
     variants_to_compile = variants_to_compile.union(EMHelper.expand_tags_to_variants(tags_to_compile))
@@ -651,7 +650,6 @@ if __name__ == "__main__":
     parser_build = subparsers.add_parser("compile", help="Compile Docker images.")
     parser_build.set_defaults(function=compile)
     parser_build.add_argument("sdks", type=str, nargs='*', help="Explicitly provide list of Emscripten SDKs in format sdk-incoming-32bit or sdk-tag-1.37.17-32bit")
-    parser_build.add_argument("--bits", default="64", choices=["32","64"], help="Target bit architecture")
     parser_build.add_argument("--branches", action="store_true", help="Update master and incoming images")
     parser_build.add_argument("--master", action="store_true", help="Update master images")
     parser_build.add_argument("--incoming", action="store_true", help="Update incoming images")
@@ -674,6 +672,5 @@ if __name__ == "__main__":
     parser_set_latest.add_argument("--force", action="store_true", help="Ignore comparing digests")
     parser_set_latest.set_defaults(function=set_latest)
 
-    # parser.add_argument("--pusher", action="store_true", help="Pushes tags created by regular command")
     args = parser.parse_args()
     args.function(args)
