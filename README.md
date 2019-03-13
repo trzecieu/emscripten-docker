@@ -1,5 +1,5 @@
 # Emscripten Docker
-[![Build Status](https://jenkins.trzeci.eu/buildStatus/icon?job=public/emscripten-docker.release)](https://jenkins.trzeci.eu/job/public/job/emscripten-docker.release/)
+[![Build Status](https://jenkins.trzeci.eu/buildStatus/icon?job=public%2Femscripten-docker.release&style=flat-square)](https://jenkins.trzeci.eu/job/public/job/emscripten-docker.release/)
 
 
 This repository contains source files for Docker Hub projects: 
