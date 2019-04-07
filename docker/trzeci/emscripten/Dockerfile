@@ -35,10 +35,7 @@ RUN echo "\n## Start building" \
         make \
         ant \
         libidn11 \
-    \
-&&	echo "\n## Installing JRE 8" \
-&&	echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list \
-&&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends -t jessie-backports openjdk-8-jre-headless \
+        openjdk-8-jre-headless \
     \
 &&	echo "\n## Installing CMake" \
 &&	wget https://cmake.org/files/v3.12/cmake-3.12.2-Linux-x86_64.sh -q \
