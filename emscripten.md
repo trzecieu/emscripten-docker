@@ -27,7 +27,7 @@ Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-dock
   * `wget` : **1.18-5+deb9u2**
   * `zip` : **3.0-11+b1**
 * Extra packages:
-  * `cmake`: **3.12.2**
+  * `cmake`: **3.14.3**
 
 ## Tag schema
 ### latest
