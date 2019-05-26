@@ -144,6 +144,14 @@ RUN echo "## Start building" \
 &&  apt-get -y autoclean \
 &&  apt-get -y autoremove \
     \
+&&  echo "## Clean Up Debian files (gotten on update/install)" \
+&&  rm -rf /var/lib/apt/lists/* \
+&&  rm -rf /var/cache/debconf/*-old \
+&&  rm -rf /usr/share/doc/* \
+&&  rm -rf /usr/share/man/?? \
+&&  rm -rf /usr/share/man/??_* \
+&&  cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
+    \
 # ------------------------------------------------------------------------------
     \
 # compatibility user with an old solution that bases on custom user
