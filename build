@@ -10,7 +10,7 @@ import re
 import sys
 
 # TODO: update *md files with installed packages only for the new version of latest
-# TODO: investigate how to update dockerhub description automatically, once it's pushed. 
+# TODO: investigate how to update dockerhub description automatically, once it's pushed.
 # TODO: investigate better mailing reports.
 # TODO: push as a service (without data file)
 # TODO: https://github.com/jwilder/docker-squash
@@ -29,7 +29,7 @@ DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
 DOCKER_REPO_UBUNTU = "trzeci/emscripten-ubuntu"
 
 DOCKER_REPO_VARIANTS = [
-    DOCKER_REPO_SLIM, 
+    DOCKER_REPO_SLIM,
     DOCKER_REPO,
     DOCKER_REPO_UBUNTU,
 ]
@@ -47,17 +47,14 @@ TEST_CASES = {
     DOCKER_REPO_SLIM : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
-        "nodejs --version",
         "node --version",
         "python --version",
-        "/emsdk_portable/sdk/embuilder.py build zlib", # tests if https is available
-        
+        "embuilder.py build zlib", # tests if https is available
     ],
     DOCKER_REPO : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
-        "nodejs --version",
         "node --version",
         "python --version",
         "wget --version",
@@ -69,12 +66,11 @@ TEST_CASES = {
         "git --version",
         "which ssh",
         "perl --version",
-    ], 
+    ],
     DOCKER_REPO_UBUNTU : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
-        "nodejs --version",
         "node --version",
         "python --version",
         "wget --version",
@@ -86,7 +82,7 @@ TEST_CASES = {
         "git --version",
         "which ssh",
         "perl --version",
-    ], 
+    ],
 }
 
 
@@ -251,7 +247,7 @@ class EmscriptenTester:
         else:
             tests = TEST_CASES[docker_project]
 
-        # FIXME: Doesn't detect local storage 
+        # FIXME: Doesn't detect local storage
         # if subprocess.call(["docker pull {id}".format(id=id)], shell=True):
             # print("[ERROR] Image wasn't pulled and it's not stored locally: " + id)
             # return False
@@ -293,7 +289,7 @@ class EmscriptenTester:
             log("TEST: {} - SUCCESS".format(id), True)
         else:
             log("TEST: {} - FAIL".format(id), True)
-                
+
         return test_successed
 
 
@@ -330,7 +326,7 @@ class DockerRegistry:
 
     def login(self):
         # usefull to access some Docker Hub functionality
-        r = Request("https://hub.docker.com/v2/users/login/", 
+        r = Request("https://hub.docker.com/v2/users/login/",
             json.dumps({
                 "username" : os.environ["DOCKER_NAME"],
                 "password" : os.environ["DOCKER_PASS"]
@@ -341,7 +337,7 @@ class DockerRegistry:
             self.access_token = json.loads(urlopen(r).read())["token"]
         except Exception as e:
             print("Wrong docker login data.")
-            
+
 
     def get_auth_header(self, repository, headers=None):
         # TODO: Add a logic what caches token
@@ -393,7 +389,7 @@ class CompilationSet:
         self.variants = variants[:] if variants else []
 
 
-# --------------VV------------- NOT REFACTORED YET --------------VV------------- 
+# --------------VV------------- NOT REFACTORED YET --------------VV-------------
 
 def get_builds(tags, update=False, branches=None, releases=False):
     result = []
@@ -413,8 +409,8 @@ def compile_image(image_id, emsdk_cs):
     log("[INFO] Start compiling [{i}]".format(i=image_id))
     with open("build_{}.log".format(image_id.replace("/","_")), "w") as f:
         p = subprocess.Popen([
-            "docker", 
-            "build", 
+            "docker",
+            "build",
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
             "--build-arg", "EMSDK_CHANGESET=" + emsdk_cs,
@@ -496,7 +492,7 @@ def get_variants_to_compile(args):
     # every possible variant that's needed to be compiled
     # It's a full Docker name: namespace/project:tag
     variants_to_compile = set()
-    
+
     if args.incoming or args.branches:
         branches_to_compile.add("incoming")
     if args.master or args.branches:
@@ -510,7 +506,7 @@ def get_variants_to_compile(args):
 
     # if tag was given explicitly, then use it
     for sth in args.sdks:
-        # sdk can be either: full docker image id, or a tag. 
+        # sdk can be either: full docker image id, or a tag.
         if sth.find(":") >= 0:
             variants_to_compile.add(sth)
         elif re.match(r'^\d+\.\d+\.\d+$', sth): # it's a version number: 1.12.4
@@ -536,7 +532,7 @@ def create_compilation_sets(variants):
     """each atomic set contains one or more variants, in order to mark those compilation successful, every variant has to succeeded"""
     sets = dict()
 
-    # simplified logic groups only by version/tag 
+    # simplified logic groups only by version/tag
     # sdk-master-32bit', 'sdk-tag-1.38.8-64bit
     for v in variants:
         variant = DockerNameDecompose(v)
@@ -546,13 +542,13 @@ def create_compilation_sets(variants):
             sets[variant.name].variants.append(variant)
         else:
             log("{} tag name looks incorect!".format(v), True)
-    
+
     # sort sets
     result = sorted(sets.values(), key=lambda x: x.name, cmp=version_compare, reverse=True)
     # sort variants in sets
     for r in result:
         r.variants = sorted(r.variants, cmp=sort_variants)
-    
+
     return result
 
 def compile(args):
@@ -597,7 +593,7 @@ def compile(args):
 
 def set_latest(args):
     registry = DockerRegistry()
-    
+
     docker_tags = DockerHelper.pushed_tags(DOCKER_REPO)
     docker_tags = list(filter(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x), docker_tags))
     docker_tags = map(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x).groups()[0], docker_tags)
@@ -656,7 +652,7 @@ if __name__ == "__main__":
     parser_build.add_argument("--releases", action="store_true", help="Update released SDKs")
     parser_build.add_argument("--fast-fail", action="store_true", help="Stops queue after first failure")
     parser_build.add_argument("--emsdk-cs", default="master", help="Explicitly use given branch/changeset of juj/emsdk")
-    
+
     parser_test = subparsers.add_parser("test", help="Test given tag(s) with Emscripten and WebAssembly compatibility")
     parser_test.set_defaults(function=test)
     parser_test.add_argument("tags", type=str, nargs='*', help="List of docker tags to test")
