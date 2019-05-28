@@ -212,7 +212,7 @@ FROM debian:stretch AS stage_deploy
 COPY --from=stage_build /emsdk_portable /emsdk_portable
 
 # Export some variables (compatibility reason)
-ENV EMSDK=/emsdk_portable
+ENV EMSDK /emsdk_portable
 ENV EM_DATA ${EMSDK}/.data
 ENV EM_CONFIG ${EMSDK}/.emscripten
 ENV EM_CACHE ${EM_DATA}/cache
@@ -259,7 +259,7 @@ ENTRYPOINT ["/emsdk_portable/entrypoint"]
 WORKDIR /src
 
 # ------------------------------------------------------------------------------
-COPY ./Dockerfile /dockerfiles/emscripten-slim/
+COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-slim/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \

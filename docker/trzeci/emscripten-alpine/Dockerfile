@@ -9,7 +9,16 @@ COPY --from=emscripten_base /emsdk_portable /emsdk_portable
 
 # ------------------------------------------------------------------------------
 
-RUN echo "Start emscripten-ubuntu compilation" \
+# Export some variables (compatibility reason)
+ENV EMSDK /emsdk_portable
+ENV EM_DATA ${EMSDK}/.data
+ENV EM_CONFIG ${EMSDK}/.emscripten
+ENV EM_CACHE ${EM_DATA}/cache
+ENV EM_PORTS ${EM_DATA}/ports
+
+# ------------------------------------------------------------------------------
+
+RUN echo "## Start emscripten-ubuntu compilation" \
     &&  echo "## Create a standard user: emscripten:emscripten" \
     &&  addgroup -S emscripten && adduser -S emscripten -G emscripten \
     \
@@ -21,11 +30,10 @@ RUN echo "Start emscripten-ubuntu compilation" \
         py-pip \
         make \
         ca-certificates \
-&&  echo "\n## Done"
+&&  echo "## Done"
 
 RUN echo "## Internal Testing of image " \
-# TODO: Investigate missing EMSDK_CONFIG export here
-    &&  . /emsdk_portable/entrypoint \
+    &&  . /emsdk_portable/emsdk_set_env.sh \
     &&  set -x \
     &&  which asm2wasm \
     &&  which llvm-ar \
@@ -49,7 +57,7 @@ WORKDIR /src
 
 # ------------------------------------------------------------------------------
 
-COPY ./Dockerfile /dockerfiles/emscripten-alpine/
+COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-alpine/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-alpine" \

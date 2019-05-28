@@ -9,6 +9,14 @@ COPY --from=emscripten_base /emsdk_portable /emsdk_portable
 
 # ------------------------------------------------------------------------------
 
+ENV EMSDK /emsdk_portable
+ENV EM_DATA ${EMSDK}/.data
+ENV EM_CONFIG ${EMSDK}/.emscripten
+ENV EM_CACHE ${EM_DATA}/cache
+ENV EM_PORTS ${EM_DATA}/ports
+
+# ------------------------------------------------------------------------------
+
 RUN echo "Start emscripten-ubuntu compilation" \
     &&  echo "## Create a standard user: emscripten:emscripten" \
     &&  groupadd --gid 1000 emscripten \
@@ -44,7 +52,7 @@ WORKDIR /src
 
 # ------------------------------------------------------------------------------
 
-COPY ./Dockerfile /dockerfiles/emscripten-ubuntu/
+COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-ubuntu/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-ubuntu" \
