@@ -47,11 +47,11 @@ RUN echo "## Start building" \
 &&	emcc --clear-cache --clear-ports \
     \
 &&	echo "## Compile Emscripten Ports" \
-&&	$EMSCRIPTEN/embuilder.py build ALL \
+&&	${EMSCRIPTEN}/embuilder.py build ALL \
     \
     #   Manual remove cache / ports in order to keep precompiled libc/libcxx
-    &&	rm -fr $EM_CACHE/asmjs/ports-builds \
-    &&	rm -fr $EM_PORTS \
+    &&	rm -fr ${EM_CACHE}/asmjs/ports-builds \
+    &&	rm -fr ${EM_PORTS} \
     \
 &&	echo "## Compile sample code" \
     &&	mkdir -p /tmp/emscripten_test && cd /tmp/emscripten_test \

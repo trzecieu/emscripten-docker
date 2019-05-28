@@ -51,9 +51,12 @@ RUN echo "## Compile Emscripten" \
         \
 &&  echo "## Done"
 
+
+
 # this generates configuration that contains all valid paths
 RUN cd ${EMSDK} \
     &&  echo "## Generate standard configuration" \
+        \
     &&  ./emsdk activate ${EMSCRIPTEN_SDK} --embedded \
     &&  ./emsdk construct_env > /dev/null \
         \
@@ -71,12 +74,6 @@ RUN cd ${EMSDK} \
         done \
         \
 &&  echo "## Done"
-
-# RUN cd ${EMSDK} \
-#     &&  echo "## Create SDK symlink" \
-#     &&  . ./emsdk_set_env.sh \
-#     &&  ln -s $(dirname $(which emcc)) ${EMSDK}/sdk \
-# &&  echo "## Done"
 
 # Building uses some bashizm
 SHELL ["/bin/bash", "-c"]
@@ -139,12 +136,23 @@ RUN cd ${EMSDK} \
     &&  sleep 2 \
 &&  echo "## Done"
 
+RUN apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
+        binutils \
+    && . ${EMSDK}/emsdk_set_env.sh \
+    # Remove debugging symbols from embedded node (extra 7MB)
+    && strip -s `which node` \
+    # && strip -s `which asm2wasm` \ # extra just 1 MB
+    # strip out symbols from clang (extra 50MB!)
+    && find $(dirname $(which clang-6.0)) -type f -exec strip -s {} + || true \
+&&  echo "## Done"
+
 # ------------------------------------------------------------------------------
+
 ENV EMSDK_ENTRYPOINT=${EMSDK}/entrypoint
 
 # compatibility user with an old solution that bases on custom user
 RUN echo "## Create transferable entrypoint" \
-    &&  printf '#!/bin/bash\n'                                          >  ${EMSDK_ENTRYPOINT} \
+    &&  printf '#!/bin/sh\n'                                            >  ${EMSDK_ENTRYPOINT} \
     # In case when mapped user id with `docker run -u` is not created ($HOME is '/')
     # then we map HOME to /tmp as it should r/w for everyone
     &&  printf 'if [ "$HOME" = "/" ] ; then\n'                          >> ${EMSDK_ENTRYPOINT} \

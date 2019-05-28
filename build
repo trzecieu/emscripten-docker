@@ -12,8 +12,6 @@ import sys
 # TODO: update *md files with installed packages only for the new version of latest
 # TODO: investigate how to update dockerhub description automatically, once it's pushed.
 # TODO: investigate better mailing reports.
-# TODO: push as a service (without data file)
-# TODO: https://github.com/jwilder/docker-squash
 # TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
 
 # from urllib import urlopen
@@ -26,13 +24,22 @@ DOCKER_REGISTRY = "registry.hub.docker.com"
 
 DOCKER_REPO = "trzeci/emscripten"
 DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
+DOCKER_REPO_ALPINE = "trzeci/emscripten-alpine"
 DOCKER_REPO_UBUNTU = "trzeci/emscripten-ubuntu"
 
 DOCKER_REPO_VARIANTS = [
     DOCKER_REPO_SLIM,
+    # DOCKER_REPO_ALPINE,
     DOCKER_REPO,
     DOCKER_REPO_UBUNTU,
 ]
+
+sort_variants_lut = {
+    "emscripten-slim" : 0,
+    "emscripten-alpine" : 1,
+    "emscripten" : 2,
+    "emscripten-ubuntu" : 3,
+}
 
 SDK_MIN = "1.37.16"
 QUEUE_FILE = "queue.txt"
@@ -45,6 +52,13 @@ SDK_IGNORED = [
 
 TEST_CASES = {
     DOCKER_REPO_SLIM : [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "node --version",
+        "python --version",
+        "embuilder.py build zlib", # tests if https is available
+    ],
+    DOCKER_REPO_ALPINE : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "node --version",
@@ -159,12 +173,6 @@ def log(text, console=False):
     with open(LOG_COMPILATION, "a") as f:
         f.write("\n[{time}] {text}".format(time=datetime.datetime.now(), text=text))
 
-
-sort_variants_lut = {
-    "emscripten-slim" : 0,
-    "emscripten" : 1,
-    "emscripten-ubuntu" : 2,
-}
 def sort_variants(x, y):
     return sort_variants_lut[x.project] - sort_variants_lut[y.project]
 
