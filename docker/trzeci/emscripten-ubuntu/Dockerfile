@@ -52,7 +52,7 @@ WORKDIR /src
 
 # ------------------------------------------------------------------------------
 
-COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-ubuntu/
+COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-ubuntu/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-ubuntu" \

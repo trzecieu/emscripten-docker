@@ -1,27 +1,27 @@
 # Docker: emscripten-slim
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
+Based on: **debian:stretch**
 
-The minimal version that is required to compile C++ code with [Emscripten](http://emscripten.org) to ASM.js or WebAssembly (WASM). The goal was to provide the best and the most lightweight foundation for custom Docker images. 
-This version has been utilized as a base version for https://hub.docker.com/r/trzeci/emscripten/ since 1.37.16 tag.
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg?style=flat-square)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
 
-## Structure
-Each tag was build from one [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile)
-* Base system: **debian:jessie**
-* Installed packages: 
-  * `ca-certificates` : **20141019+deb8u3**
-  * `iproute2` : **3.16.0-2**
-  * `iputils-ping` : **3:20121221-5+b2**
-  * `python` : **2.7.9-1**
-  * `python-pip` : **1.5.6-5**
-* Extra packages:
-  * `nodejs`: **8.9.1_64bit** (from EMSDK)
+The minimal version that is required to compile C++ code with [Emscripten](http://emscripten.org) to ASM.js or WebAssembly (WASM). The goal was to provide the best and the most lightweight foundation for custom Docker images.
+Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile)
 
-`debian:jessie` has been chosen as a base system due its popularity. Image has been optimized in order to have the lowest possible size.
+## Packages
+
+### Manually installed:
+
+|pacakage|version|
+|---|---|
+|`nodejs`|**8.9.1_64bit** (from EMSDK)|
+
+### System installed:
+
+<!-- installed_packages -->
 
 ## Tag schema
 
 ### latest
-The default version (aka `latest`) points at [the latest tagged release](https://github.com/kripken/emscripten/releases) by Emscripten. 
+The default version (aka `latest`) points at [the latest tagged release](https://github.com/kripken/emscripten/releases) by Emscripten.
 
 ### Version release
 `sdk-tag-{VERSION}-{BITS}`
@@ -37,7 +37,7 @@ Example: `sdk-master-32bit`
 
 
 ## Usage
-Start volume should be mounted in `/src`. 
+Start volume should be mounted in `/src`.
 For start point every Emscripten command is available. For the instance: `emcc`, `em++`, `emmake`, `emar` etc.
 
 To compile a single file:
@@ -45,7 +45,13 @@ To compile a single file:
 
 Hello World:
 ```bash
-printf '#include <iostream>\nint main() { std::cout<<"HELLO FROM DOCKER C++"<<std::endl; return 0; }' > helloworld.cpp
+cat << EOF > helloworld.cpp
+#include <iostream>
+int main() {
+  std::cout << "HELLO FROM DOCKER C++" << std::endl;
+  return 0;
+}
+EOF
 
 docker run \
   --rm \
@@ -71,15 +77,27 @@ Teardown of compilation command:
 
 ## How to extend this image?
 Good example of extending this image you can find here: https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile
-Basically it requires to create own Dockerfile what stats with: 
+Basically it requires to create own Dockerfile what stats with:
 ```Dockerfile
-FROM trzeci/emscripten-slim:sdk-tag-1.37.19-64bit
-# Where sdk-tag-1.37.19-64bit is an arbitrary version what you would like to extend
+FROM trzeci/emscripten-slim:latest
 
 RUN ...
 
 ```
-Doing so, don't forget about [Dockerfile best practices](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)
+Even better example you can find here: https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-ubuntu/Dockerfile
+```Dockerfile
+ARG EMSCRIPTEN_SDK=sdk-tag-1.38.25-64bit
+FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK} as emscripten_base
+# -----
+FROM ubuntu:bionic
+COPY --from=emscripten_base /emsdk_portable /emsdk_portable
+RUN ...
+
+ENTRYPOINT ["/emsdk_portable/entrypoint"]
+
+```
+Basically you can use whatever base system of choice and copy content of `/emsdk_portable` from either `emscripten` or `emscripten-slim` and start use it.
+In case of some base images you might need to install also system node.js and remove bundled one (as it might be incompatible as it's dynamically linked)
 
 ## How to compile?
 0. Pull the latest https://github.com/trzecieu/emscripten-docker
@@ -88,12 +106,29 @@ Doing so, don't forget about [Dockerfile best practices](https://docs.docker.com
 
 Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (where `sdk-tag-1.37.19-64bit` is an arbitrary tag)
 
-## Support 
+## Support
 * **GitHub / Issue tracker**: https://github.com/trzecieu/emscripten-docker
 * **Docker: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
+<sub>(Please note that following history refers only to the history of this Docker Image and how it was build / what includes. For release notes of emscripten, please follow https://emscripten.org)</sub>
+
+* **1.38.33**: [#44](https://github.com/trzecieu/emscripten-docker/issues/44) Significant refactoring of base image emscripten-slim. Which includes:
+  * Improvements:
+    * `/emsdk_portable` is fully moveable folder that can be used as a `COPY --from` source of multi stage build
+    * `/emsdk_portable/dockerfiles` contains Dockerfile sources used to compile a particular image - so that it should be fairly easy to replicate and inspect content of images
+    * `emsdk` should be fully functional tool now, so that can be used for upgrading bundled emscripten SDK or to install extra tools
+    * Even further size optimization by stripping out symbols from node.js and emscripten-clang tools
+
+  * Breaking Changes:
+    * Image has to be executed with boundled entrypoint (`/emsdk_portable/emscripten`)
+    * Image no longer creates system symbolic links
+    * Image no longer preserves folder structure between versions (like Clang tools were always placed in `/emsdk_portable/llvm`)
+    * `nodejs` is no longer symlinked (`node` should be used instead)
+    * If image is accessed bypassing entrypoint, then `$EMSCRIPTEN` environment variable isn't set.
+
+Please follow GitHub issue for more information.
 * **1.38.26** [#36](https://github.com/trzecieu/emscripten-docker/issues/36) - Reduce image size from 330MB to 189MB
 * **1.38.20** [#34](https://github.com/trzecieu/emscripten-docker/issues/34) - Fix error when `emcc` tries to read internal documentation
 * **1.38.17** Version ignored due problems with [Emscripten]
@@ -108,5 +143,8 @@ Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (
 * **1.37.19** Entrypoint (`/entrypoint`) is removed, what simplifies setup and adds a compatibility to CircleCI. [#12](https://github.com/trzecieu/emscripten-docker/pull/12)
 * **1.37.16** the image is compiled from singe [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile).
 
-### License
-MIT
+## License
+[![MIT](https://img.shields.io/github/license/trzecieu/emscripten-docker.svg?style=flat-square)](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
+
+-----
+<!-- footer -->

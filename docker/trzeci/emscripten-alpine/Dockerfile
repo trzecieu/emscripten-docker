@@ -57,7 +57,7 @@ WORKDIR /src
 
 # ------------------------------------------------------------------------------
 
-COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-alpine/
+COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-alpine/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-alpine" \

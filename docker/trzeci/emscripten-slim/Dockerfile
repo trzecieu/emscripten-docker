@@ -259,7 +259,7 @@ ENTRYPOINT ["/emsdk_portable/entrypoint"]
 WORKDIR /src
 
 # ------------------------------------------------------------------------------
-COPY Dockerfile /emsdk_portable/dockerfiles/emscripten-slim/
+COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-slim/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \

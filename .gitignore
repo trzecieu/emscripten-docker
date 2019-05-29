@@ -5,3 +5,5 @@ queue.txt
 .vscode
 *.wasm
 *.wast
+node_modules/
+package-lock.json

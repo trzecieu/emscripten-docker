@@ -1,41 +1,30 @@
 # Docker: emscripten
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
+Based on: **[trzeci/emscripten-slim](https://hub.docker.com/r/trzeci/emscripten-slim)**
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg?style=flat-square)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
 
 A complete container that is required to compile C++ code with [Emscripten](http://emscripten.org). The goal was to provide a container that includes the most popular development packages and it's also easy to extend.
-Since tag 1.37.16 this container bases on https://hub.docker.com/r/trzeci/emscripten-slim/
-
-## Structure
 Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile)
-* Base system: **trzeci/emscripten-slim**
-* Installed packages:
-  * `ant` : **1.9.9-1+deb9u1**
-  * `build-essential` : **12.3**
-  * `ca-certificates` : **20161130+nmu1+deb9u1**
-  * `curl` : **7.52.1-5+deb9u9**
-  * `gcc` : **4:6.3.0-4**
-  * `git` : **1:2.11.0-3+deb9u4**
-  * `iproute2` : **4.9.0-1+deb9u1**
-  * `iputils-ping` : **3:20161105-1**
-  * `libidn11` : **1.33-1**
-  * `make` : **4.1-9.1**
-  * `openjdk-8-jre-headless` : **8u181-b13-2~deb9u1**
-  * `openssh-client` : **1:7.4p1-10+deb9u4**
-  * `python` : **2.7.13-2**
-  * `python-pip` : **9.0.1-2**
-  * `unzip` : **6.0-21**
-  * `wget` : **1.18-5+deb9u2**
-  * `zip` : **3.0-11+b1**
-* Extra packages:
-  * `cmake`: **3.14.3**
+
+## Packages
+
+### Manually installed:
+
+|pacakage|version|
+|---|---|
+|`cmake`|**3.14.3**|
+
+### System packages:
+
+<!-- installed_packages -->
 
 ## Tag schema
 ### latest
-The default version (aka `latest`) points at [the latest tagged release](https://github.com/kripken/emscripten/releases) by Emscripten. 
+The default version (aka `latest`) points at [the latest tagged release](https://github.com/emscripten-core/emscripten/releases) by Emscripten.
 
 ### Version release
 `sdk-tag-{VERSION}-{BITS}`
-* **VERSION**: One of the official [Emscripten tag](https://github.com/kripken/emscripten/tags) released since 1.34.1
+* **VERSION**: One of the official [Emscripten tag](https://github.com/emscripten-core/emscripten/tags) released since 1.34.1
 * **BITS**: `["32bit", "64bit"]`
 Example: `sdk-tag-1.34.4-64bit`
 
@@ -43,11 +32,12 @@ Example: `sdk-tag-1.34.4-64bit`
 `sdk-{BRANCH}-{BITS}`
 * **BRANCH**: `["incoming", "master"]`
 * **BITS**: `["32bit", "64bit"]`
-Example: `sdk-master-32bit`
+Example: `sdk-master-64bit`
 
+Please note: **32bit** is not longer released by this image
 
 ## Usage
-Start volume should be mounted in `/src`. 
+Start volume should be mounted in `/src`.
 For start point every Emscripten command is available. For the instance: `emcc`, `em++`, `emmake`, `emar` etc.
 
 To compile a single file:
@@ -55,7 +45,13 @@ To compile a single file:
 
 Hello World:
 ```bash
-printf '#include <iostream>\nint main() { std::cout<<"HELLO FROM DOCKER C++"<<std::endl; return 0; }' > helloworld.cpp
+cat << EOF > helloworld.cpp
+#include <iostream>
+int main() {
+  std::cout << "HELLO FROM DOCKER C++" << std::endl;
+  return 0;
+}
+EOF
 
 docker run \
   --rm \
@@ -86,29 +82,49 @@ Teardown of compilation command:
 
 Helper command: `./build compile trzeci/emscripten:sdk-tag-1.37.17-64bit` (where `sdk-tag-1.37.17-64bit` is an arbitrary tag)
 
-## Support 
+## Support
 * **GitHub / Issue tracker**: https://github.com/trzecieu/emscripten-docker
-* **Docker: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
-* **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
+* **Docker Hub: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
+* **Docker Hub: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
 ## History
-* **1.38.30** [#40](https://github.com/trzecieu/emscripten-docker/issues/40) Fixed image compilation problem caused by JRE backport package
-* **1.38.22** [#35](https://github.com/trzecieu/emscripten-docker/issues/35) upgrade to `cmake` 3.12.2
-* **1.38.17** Version ignored due problems with [Emscripten]
-* **1.38.9** `/emsdk_portable` will be preserved as a git repos (with valid version of changeset)
-* **1.38.7** Version removed due problems with [emsdk](https://github.com/juj/emsdk/pull/156)
-* **1.37.29** upgrade to `cmake` 3.7.2
-* **1.37.23** Added `curl`, `zip`, `unzip`, upgrade to openjdk-jre-8
-* **1.37.21** Fixed missing `ctest` command
-* **1.37.21** image includes `ssh` and cache of libc libcxx is fixed. 
-* **1.37.19** image doesn't use entrypoint from the base image.
-* **1.37.18** it contains `perl` and `git` package
-* **1.37.16** images are compiled from singe [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
-* **1.37.10** images are bundled with `java`
-* **1.36.7** images are bundled with `make` and `nodejs`
-* **1.36.7** images are bundled with `cmake` 3.6.3, images are build from generated [Dockerfiles](https://github.com/trzecieu/emscripten-docker/tree/f738f061c8068ec24124c37286eafec01d54a6ef/configs)
-* **1.35.0** images base on Debian
-* **1.34.X** images base on Ubuntu:15.10
+<sub>(Please note that following history refers only to the history of this Docker Image and how it was build / what includes. For release notes of emscripten, please follow https://emscripten.org)</sub>
 
-### License
-MIT
+* **1.38.33**: [#44](https://github.com/trzecieu/emscripten-docker/issues/44) Significant refactoring of base image emscripten-slim. Which includes:
+  * Improvements:
+    * `/emsdk_portable` is fully moveable folder that can be used as a `COPY --from` source of multi stage build
+    * `/emsdk_portable/dockerfiles` contains Dockerfile sources used to compile a particular image - so that it should be fairly easy to replicate and inspect content of images
+    * `emsdk` should be fully functional tool now, so that can be used for upgrading bundled emscripten SDK or to install extra tools
+    * Even further size optimization by stripping out symbols from node.js and emscripten-clang tools
+
+  * Breaking Changes:
+    * Image has to be executed with boundled entrypoint (`/emsdk_portable/emscripten`)
+    * Image no longer creates system symbolic links
+    * Image no longer preserves folder structure between versions (like Clang tools were always placed in `/emsdk_portable/llvm`)
+    * `nodejs` is no longer symlinked (`node` should be used instead)
+    * If image is accessed bypassing entrypoint, then `$EMSCRIPTEN` environment variable isn't set.
+
+Please follow GitHub issue for more information.
+* **1.38.30**: [#40](https://github.com/trzecieu/emscripten-docker/issues/40) Fixed image compilation problem caused by JRE backport package
+* **1.38.22**: [#35](https://github.com/trzecieu/emscripten-docker/issues/35) upgrade to `cmake` 3.12.2
+* **1.38.17**: Version ignored due problems with [Emscripten]
+* **1.38.9**: `/emsdk_portable` will be preserved as a git repos (with valid version of changeset)
+* **1.38.7**: Version removed due problems with [emsdk](https://github.com/juj/emsdk/pull/156)
+* **1.37.29**: upgrade to `cmake` 3.7.2
+* **1.37.23**: Added `curl`, `zip`, `unzip`, upgrade to openjdk-jre-8
+* **1.37.21**: Fixed missing `ctest` command
+* **1.37.21**: image includes `ssh` and cache of libc libcxx is fixed.
+* **1.37.19**: image doesn't use entrypoint from the base image.
+* **1.37.18**: it contains `perl` and `git` package
+* **1.37.16**: images are compiled from singe [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
+* **1.37.10**: images are bundled with `java`
+* **1.36.7**: images are bundled with `make` and `nodejs`
+* **1.36.7**: images are bundled with `cmake` 3.6.3, images are build from generated [Dockerfiles](https://github.com/trzecieu/emscripten-docker/tree/f738f061c8068ec24124c37286eafec01d54a6ef/configs)
+* **1.35.0**: images base on Debian
+* **1.34.X**: images base on Ubuntu:15.10
+
+## License
+[![MIT](https://img.shields.io/github/license/trzecieu/emscripten-docker.svg?style=flat-square)](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
+
+-----
+<!-- footer -->

@@ -83,7 +83,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 
 # ------------------------------------------------------------------------------
 
-COPY Dockerfile /emsdk_portable/dockerfiles/emscripten/
+COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten/
 
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten" \

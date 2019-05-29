@@ -7,7 +7,7 @@ This repository contains source files for Docker Hub projects:
 ## trzeci/emscripten-slim
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/)
 [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
-[![Sanity](https://badges.herokuapp.com/travis/Quuxplusone/emscripten-docker?env=IMAGE=trzeci/emscripten-slim&label=hello)](https://travis-ci.org/Quuxplusone/emscripten-docker)
+[![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-slim&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker)
 
 * **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten-slim/
 * **ReadMe**: https://github.com/trzecieu/emscripten-docker/blob/master/emscripten-slim.md
@@ -15,7 +15,7 @@ This repository contains source files for Docker Hub projects:
 ## trzeci/emscripten
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/)
 [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
-[![Sanity](https://badges.herokuapp.com/travis/Quuxplusone/emscripten-docker?env=IMAGE=trzeci/emscripten&label=hello)](https://travis-ci.org/Quuxplusone/emscripten-docker)
+[![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker)
 
 * **Docker Hub**: https://hub.docker.com/r/trzeci/emscripten/
 * **ReadMe**: https://github.com/trzecieu/emscripten-docker/blob/master/emscripten.md
@@ -61,9 +61,12 @@ command:
 * https://github.com/medialize/sass.js
 * https://github.com/jasoncharnes/run.rb
 * https://github.com/GoogleChromeLabs/webm-wasm
+* https://github.com/google/neuroglancer
+* https://github.com/finos/perspective
+* https://blog.qt.io/blog/2019/03/05/using-docker-test-qt-webassembly/
 * And many more that I'm proud of each!
 
 
 ## License
-[MIT](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
+[![MIT](https://img.shields.io/github/license/trzecieu/emscripten-docker.svg?style=flat-square)](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
 
