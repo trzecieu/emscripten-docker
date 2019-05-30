@@ -5,16 +5,24 @@ FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK} as emscripten_base
 
 FROM alpine
 
+# Source /emsdk_portable should be contain every emscripten tool.
+# It's not recommended to change destination location
 COPY --from=emscripten_base /emsdk_portable /emsdk_portable
 
-# ------------------------------------------------------------------------------
-
-# Export some variables (compatibility reason)
+# Emscripten to operate requires EMSDK and EMSCRIPTEN system environment variables
 ENV EMSDK /emsdk_portable
-ENV EM_DATA ${EMSDK}/.data
+ENV EMSCRIPTEN /emsdk_portable/links/emscripten
+# But we've stored a local config in non-standard location
 ENV EM_CONFIG ${EMSDK}/.emscripten
+ENV EM_DATA ${EMSDK}/.data
 ENV EM_CACHE ${EM_DATA}/cache
 ENV EM_PORTS ${EM_DATA}/ports
+
+# Expose standard emscripten tools like: emcc emsdk asm2wasm clang etc.. to system
+ENV PATH="${EMSCRIPTEN}:${EMSDK}:${EMSDK}/links/clang/bin:${EMSDK}/links/node/bin:${EMSDK}/links/binaryen/bin:${PATH}"
+
+# We can also use predefined entrypoint which sets up everything for us (system variables mostly)
+ENTRYPOINT ["/emsdk_portable/entrypoint"]
 
 # ------------------------------------------------------------------------------
 
@@ -52,11 +60,11 @@ RUN echo "## Internal Testing of image " \
 
 # ------------------------------------------------------------------------------
 
-ENTRYPOINT ["/emsdk_portable/entrypoint"]
 WORKDIR /src
 
 # ------------------------------------------------------------------------------
-
+# Copy used Dockerimage into image, so that it will be possible to recover any image
+# Or at least inspect how it was compiled
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-alpine/
 
 LABEL maintainer="kontakt@trzeci.eu" \

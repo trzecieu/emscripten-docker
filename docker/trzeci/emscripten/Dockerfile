@@ -3,10 +3,6 @@ FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
 
 # ------------------------------------------------------------------------------
 
-ARG EMSCRIPTEN_SDK
-
-# ------------------------------------------------------------------------------
-
 RUN echo "## Start building" \
     \
 &&	echo "## Update and install packages" \
@@ -36,7 +32,7 @@ RUN echo "## Start building" \
     &&	ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest \
     \
 # activate emscripten in order to setup environment
-&&  . /emsdk_portable/emsdk_set_env.sh \
+&&  . ${EMSDK}/emsdk_set_env.sh \
 &&	printf "JAVA='$(which java)'\n" >> $EM_CONFIG \
     \
 &&	sleep 2 \
@@ -82,7 +78,8 @@ RUN echo "## Start building" \
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 
 # ------------------------------------------------------------------------------
-
+# Copy used Dockerimage into image, so that it will be possible to recover any image
+# Or at least inspect how it was compiled
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten/
 
 LABEL maintainer="kontakt@trzeci.eu" \

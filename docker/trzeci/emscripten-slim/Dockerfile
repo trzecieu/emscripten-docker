@@ -148,6 +148,7 @@ RUN apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
 
 # ------------------------------------------------------------------------------
 
+# Just
 ENV EMSDK_ENTRYPOINT=${EMSDK}/entrypoint
 
 # compatibility user with an old solution that bases on custom user
@@ -202,6 +203,21 @@ RUN echo "## Pre-populate cache" \
     \
     &&  echo "## Done"
 
+
+# Create symbolic links to critical Emscripten Tools
+# This is important for letting people using Emscripten in Dockerfiles without activation
+RUN echo "## Create links" \
+    &&  . ${EMSDK}/emsdk_set_env.sh \
+    \
+    &&  mkdir -p ${EMSDK}/links \
+    \
+    &&  ln -s $(dirname $(which node))/..       ${EMSDK}/links/node \
+    &&  ln -s $(dirname $(which clang))/..      ${EMSDK}/links/clang \
+    &&  ln -s $(dirname $(which emcc))          ${EMSDK}/links/emscripten \
+    &&  ln -s $(dirname $(which asm2wasm))/..   ${EMSDK}/links/binaryen \
+    \
+    &&  echo "## Done"
+
 # ------------------------------------------------------------------------------
 # -------------------------------- STAGE DEPLOY --------------------------------
 # ------------------------------------------------------------------------------
@@ -213,10 +229,17 @@ COPY --from=stage_build /emsdk_portable /emsdk_portable
 
 # Export some variables (compatibility reason)
 ENV EMSDK /emsdk_portable
+# Fallback in case Emscripten isnt'a activated
+ENV EMSCRIPTEN=${EMSDK}/links/emscripten
+
 ENV EM_DATA ${EMSDK}/.data
 ENV EM_CONFIG ${EMSDK}/.emscripten
 ENV EM_CACHE ${EM_DATA}/cache
 ENV EM_PORTS ${EM_DATA}/ports
+
+# In case when emscripten isn't activated (/emsdk_portable/entrypoint isn't used)
+# We should have major emscripten tools available right from system PATH
+ENV PATH="${EMSCRIPTEN}:${EMSDK}:${EMSDK}/links/clang/bin:${EMSDK}/links/node/bin:${EMSDK}/links/binaryen/bin:${PATH}"
 
 # ------------------------------------------------------------------------------
 
@@ -259,6 +282,8 @@ ENTRYPOINT ["/emsdk_portable/entrypoint"]
 WORKDIR /src
 
 # ------------------------------------------------------------------------------
+# Copy used Dockerimage into image, so that it will be possible to recover any image
+# Or at least inspect how it was compiled
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-slim/
 
 LABEL maintainer="kontakt@trzeci.eu" \
@@ -270,12 +295,37 @@ LABEL maintainer="kontakt@trzeci.eu" \
 
 # ------------------------- POST BUILD IN-PLACE TESTING ------------------------
 
-RUN echo "## Internal Testing of image " \
+RUN echo "## Internal Testing of image (activated)" \
     &&  . ${EMSDK}/emsdk_set_env.sh \
     &&  set -x \
+    # binaryen
     &&  which asm2wasm \
+    # clang
     &&  which llvm-ar \
+    # emscritpen
     &&  which emsdk \
+    \
+    &&  node --version \
+    &&  npm --version \
+    &&  python --version \
+    &&  pip --version \
+    \
+    &&  em++ --version \
+    &&  emcc --version \
+    \
+    &&  find ${EMSDK} -name "*.pyc" -exec rm {} \; \
+    \
+&&  echo "## Done"
+
+RUN echo "## Internal Testing of image - raw" \
+    &&  set -x \
+    # binaryen
+    &&  which asm2wasm \
+    # clang
+    &&  which llvm-ar \
+    # emscritpen
+    &&  which emsdk \
+    \
     &&  node --version \
     &&  npm --version \
     &&  python --version \
