@@ -1,6 +1,12 @@
 ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
 FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
 
+# ------------------------------ ABOUT THIS IMAGE  -----------------------------
+# This image shows one way of extending base image which is `emscripten-slim` by
+# extra tools.
+# Major advantage of this was is simplicity, as all environment is already set
+# by the base image. Major flaw is that we stick to underlying Debian image.
+# To see another way of extending `emscritpen-slim` please look at `emscripten-ubuntu`
 # ------------------------------------------------------------------------------
 
 RUN echo "## Start building" \
@@ -78,8 +84,7 @@ RUN echo "## Start building" \
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 
 # ------------------------------------------------------------------------------
-# Copy used Dockerimage into image, so that it will be possible to recover any image
-# Or at least inspect how it was compiled
+# Copy this Dockerimage into image, so that it will be possible to recreate it later
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten/
 
 LABEL maintainer="kontakt@trzeci.eu" \

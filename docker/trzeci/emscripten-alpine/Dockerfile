@@ -2,26 +2,30 @@ ARG EMSCRIPTEN_SDK=sdk-tag-1.38.25-64bit
 FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK} as emscripten_base
 
 # ------------------------------------------------------------------------------
+# Entries in this section is required to move Emscripten SDK to another base image
 
+# Any arbitrary base image of choice
 FROM alpine
 
-# Source /emsdk_portable should be contain every emscripten tool.
-# It's not recommended to change destination location
+# Source /emsdk_portable contains every emscripten tool.
+# It's not recommended to change destination path
 COPY --from=emscripten_base /emsdk_portable /emsdk_portable
 
-# Emscripten to operate requires EMSDK and EMSCRIPTEN system environment variables
+
+# Fallback in case Emscripten isn't activated.
+# This will let use tools offered by this image inside other Docker images (sub-stages) or with custom / no entrypoint
 ENV EMSDK /emsdk_portable
-ENV EMSCRIPTEN /emsdk_portable/links/emscripten
-# But we've stored a local config in non-standard location
-ENV EM_CONFIG ${EMSDK}/.emscripten
+ENV EMSCRIPTEN=${EMSDK}/emscripten/sdk
 ENV EM_DATA ${EMSDK}/.data
+ENV EM_CONFIG ${EMSDK}/.emscripten
 ENV EM_CACHE ${EM_DATA}/cache
 ENV EM_PORTS ${EM_DATA}/ports
 
-# Expose standard emscripten tools like: emcc emsdk asm2wasm clang etc.. to system
-ENV PATH="${EMSCRIPTEN}:${EMSDK}:${EMSDK}/links/clang/bin:${EMSDK}/links/node/bin:${EMSDK}/links/binaryen/bin:${PATH}"
+# Fallback in case Emscripten isn't activated
+# Expose Major tools to system PATH, so that emcc, node, asm2wasm etc can be used without activation
+ENV PATH="${EMSCRIPTEN}:${EMSDK}:${EMSDK}/llvm/clang/bin:${EMSDK}/node/current/bin:${EMSDK}/binaryen/bin:${PATH}"
 
-# We can also use predefined entrypoint which sets up everything for us (system variables mostly)
+# Use entrypoint that's coming from emscripten-slim image. It sets all required system paths and variables
 ENTRYPOINT ["/emsdk_portable/entrypoint"]
 
 # ------------------------------------------------------------------------------
@@ -63,8 +67,7 @@ RUN echo "## Internal Testing of image " \
 WORKDIR /src
 
 # ------------------------------------------------------------------------------
-# Copy used Dockerimage into image, so that it will be possible to recover any image
-# Or at least inspect how it was compiled
+# Copy this Dockerimage into image, so that it will be possible to recreate it later
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-alpine/
 
 LABEL maintainer="kontakt@trzeci.eu" \
