@@ -1,5 +1,5 @@
 # Docker: emscripten-slim
-Based on: **debian:stretch**
+Based on: **debian:stretch-slim**
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg?style=flat-square)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
 
@@ -19,29 +19,21 @@ Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-dock
 <!-- installed_packages -->
 
 ## Tag schema
-
-### latest
-The default version (aka `latest`) points at [the latest tagged release](https://github.com/kripken/emscripten/releases) by Emscripten.
-
-### Version release
-`sdk-tag-{VERSION}-{BITS}`
-* **VERSION**: One of the official [Emscripten tag](https://github.com/kripken/emscripten/tags) released since 1.34.1
-* **BITS**: `["32bit", "64bit"]`
-Example: `sdk-tag-1.34.4-64bit`
-
-### Branch release
-`sdk-{BRANCH}-{BITS}`
-* **BRANCH**: `["incoming", "master"]`
-* **BITS**: `["32bit", "64bit"]`
-Example: `sdk-master-32bit`
+|tag|description|
+|--|--|
+|`latest`|The default version (aka `latest`) points at [the latest tag release](https://github.com/emscripten-core/emscripten/releases) by Emscripten.|
+|`sdk-tag-{VERSION}-64bit`| Tag release:<br>- **VERSION**: One of the official [Emscripten tag](https://github.com/emscripten-core/emscripten/tags) released since 1.34.1|
+|`sdk-{BRANCH}-64bit`|Branch release:<br>- **BRANCH**: `["incoming", "master"]`|
 
 
 ## Usage
-Start volume should be mounted in `/src`.
+Start volume might be mounted in `/src`, but I prefer to mirror my local path (then it's easier to look for compilation errors)
 For start point every Emscripten command is available. For the instance: `emcc`, `em++`, `emmake`, `emar` etc.
 
 To compile a single file:
-`docker run --rm -v $(pwd):/src trzeci/emscripten-slim emcc helloworld.cpp -o helloworld.js`
+```bash
+docker run --rm -v `pwd`:`pwd` trzeci/emscripten-slim emcc helloworld.cpp -o helloworld.js
+```
 
 Hello World:
 ```bash
@@ -55,7 +47,7 @@ EOF
 
 docker run \
   --rm \
-  -v $(pwd):/src \
+  -v $(pwd):$(pwd) \
   -u $(id -u):$(id -g) \
   trzeci/emscripten-slim \
   emcc helloworld.cpp -o helloworld.js
@@ -69,41 +61,76 @@ Teardown of compilation command:
 |---|---|
 |`docker run`| A standard command to run a command in a container|
 |`--rm`|remove a container after execution|
-|`-v $(pwd):/src`|Mounting current folder from the host system, into `/src` of the image|
+|`-v $(pwd):$(pwd)`|Mounting current folder from the host system, into mirrored path on the image|
 |`-u $(id -u):$(id -g)`|(1.37.23+) Run a container as a non-root user with the same UID and GID as local user. Hence all files produced by this are accessible to non-root users|
 |`trzeci/emscripten-slim`|Get the latest tag of this container|
 |`emcc helloworld.cpp -o helloworld.js`|Execute emcc command with following arguments inside container|
 
+## Extending this image
+If you would like to extend this image you have two choices:
+### Extend: Keep base image
+An example how to derive from base image and keep linux base container you can find here - [emscripten](./docker/trzeci/emscripten/Dockerfile).
 
-## How to extend this image?
-Good example of extending this image you can find here: https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile
-Basically it requires to create own Dockerfile what stats with:
+ Then all what you need is:
 ```Dockerfile
 FROM trzeci/emscripten-slim:latest
-
 RUN ...
-
 ```
-Even better example you can find here: https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-ubuntu/Dockerfile
-```Dockerfile
-ARG EMSCRIPTEN_SDK=sdk-tag-1.38.25-64bit
-FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK} as emscripten_base
-# -----
-FROM ubuntu:bionic
+### Change base image
+An example how to derive from base image and switch linux base container you can find here - [emscripten-ubuntu](./docker/trzeci/emscripten-ubuntu/Dockerfile).
+
+In case if you'd like to create a different image that contains pre-compiled emscripten you can use multistage Docker file.
+For example let's create fedora base image:
+```dockerfile
+FROM trzeci/emscripten-slim:sdk-tag-1.38.25-64bit as emscripten_base
+# ----
+FROM fedora
 COPY --from=emscripten_base /emsdk_portable /emsdk_portable
-RUN ...
+
+# install required tools to run Emscripten SDK
+RUN dnf install -y python python-pip ca-certificates
 
 ENTRYPOINT ["/emsdk_portable/entrypoint"]
-
 ```
+That's all! All you need is to copy content from `/emsdk_portable` to the same folder in your image.
+Then it's important to use `/emsdk_portable/entrypoint` as it contains some nice fixes for non-root file access rights.
+Alternatively you can also call:
+```bash
+. /emsdk_portable/emsdk_set_env.sh
+```
+in your entrypoint - it will work just fine!
+
+#### Entrypoint
+Important step is to activate Emscripten SDK - so that tools are available for usage.
+Most traditional way is to use entrypoint and this image provides one:
+```dockerfile
+ENTRYPOINT ["/emsdk_portable/entrypoint"]
+```
+
+#### Entypoint-less
+In case when you can't override entrypoint, or you have to have Emscripten Ready as a docker stage step, you might use an alternative method - let's say static activation.
+For that instead of adding `ENTRYPOINT`, you need to add:
+```dockerfile
+# Setup Emscripten Environment variables
+ENV EMSDK /emsdk_portable
+ENV EMSCRIPTEN=${EMSDK}/emscripten/sdk
+
+ENV EM_DATA ${EMSDK}/.data
+ENV EM_CONFIG ${EMSDK}/.emscripten
+ENV EM_CACHE ${EM_DATA}/cache
+ENV EM_PORTS ${EM_DATA}/ports
+
+# Expose tools to system PATH
+ENV PATH="${EMSDK}:${EMSDK}/emscripten/sdk:${EMSDK}/llvm/clang/bin:${EMSDK}/node/current/bin:${EMSDK}/binaryen/bin:${PATH}"
+```
+
 Basically you can use whatever base system of choice and copy content of `/emsdk_portable` from either `emscripten` or `emscripten-slim` and start use it.
-In case of some base images you might need to install also system node.js and remove bundled one (as it might be incompatible as it's dynamically linked)
 
 ## How to compile?
 0. Pull the latest https://github.com/trzecieu/emscripten-docker
 0. [Optional] To be extra accurate, you can check which version of [EMSDK](https://github.com/juj/emsdk) was used in a particular image. For older images you can check [a file](https://github.com/trzecieu/emscripten-docker/blob/master/emscripten_to_emsdk_map.md) otherwise for images 1.38.9+ execute a command `docker run --rm -it trzeci/emscripten:sdk-tag-1.38.9-64bit bash -c "git -C /emsdk_portable rev-parse HEAD"`
 0. Compile [Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-slim/Dockerfile)
-
+<!-- TODO: Add instruction about  -->
 Helper command: `./build compile trzeci/emscripten-slim:sdk-tag-1.37.19-64bit` (where `sdk-tag-1.37.19-64bit` is an arbitrary tag)
 
 ## Support

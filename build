@@ -68,6 +68,7 @@ TEST_CASES = {
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib", # tests if https is available
         "node --version",
         "python --version",
         "wget --version",
@@ -84,6 +85,7 @@ TEST_CASES = {
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib", # tests if https is available
         "node --version",
         "python --version",
         "wget --version",
@@ -259,42 +261,41 @@ class EmscriptenTester:
             # print("[ERROR] Image wasn't pulled and it's not stored locally: " + id)
             # return False
 
-        for entrypoint in [["--entrypoint="], []]:
-            for test in tests:
-                log("Perform test `%s`" % test)
-                log("[TEST] %s" % test)
-                volume = os.path.join(os.path.dirname(os.path.realpath(__file__)), "src")
-                cmd = [
-                    "docker", "run", "--rm",
-                ]
-                # test build with and without entrypoint (to make sure that raw image also works)
-                cmd += entrypoint
-                cmd += [
-                    "-v", "{}:/src".format(volume),
-                    "-w", "/src",
-                    "-u", "emscripten",
-                    id,
-                    "bash", "-c",
-                    test,
-                ]
+        for user in [["-u", "emscripten"], []]:
+            log("[INFO] ## Setting user switch: '%s'" % user)
+            for entrypoint in [["--entrypoint="], []]:
+                log("[INFO] ## Setting entrypoint switch: '%s'" % entrypoint)
+                for test in tests:
+                    volume = os.path.join(os.path.dirname(os.path.realpath(__file__)), "src")
+                    cmd = [
+                        "docker", "run", "--rm",
+                    ]
+                    # test build with and without entrypoint (to make sure that raw image also works)
+                    cmd += entrypoint
+                    cmd += user
+                    cmd += [
+                        "-v", "{}:/src".format(volume),
+                        "-w", "/src",
+                        "-u", "emscripten",
+                        id,
+                        "bash", "-c",
+                        test,
+                    ]
 
-                p = subprocess.Popen(cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-                out, err = p.communicate()
+                    p = subprocess.Popen(cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    out, err = p.communicate()
 
-                log("[INFO]: {}".format(subprocess.list2cmdline(cmd)))
+                    log("[INFO]: {}".format(subprocess.list2cmdline(cmd)))
 
-                if err:
-                    log(err)
+                    if p.returncode:
+                        if err: log(err)
+                        if out: log(out)
 
-                if out:
-                    log(out)
-
-                if p.returncode:
-                    log("[ERROR] Testing {id} failed".format(id=id))
-                    test_successed = False
+                        log("[ERROR] Testing {id} failed".format(id=id))
+                        test_successed = False
 
         if remove_image:
             subprocess.call(["docker rmi {id}".format(id=id)], shell=True)

@@ -15,6 +15,7 @@ COPY --from=emscripten_base /emsdk_portable /emsdk_portable
 # This will let use tools offered by this image inside other Docker images (sub-stages) or with custom / no entrypoint
 ENV EMSDK /emsdk_portable
 ENV EMSCRIPTEN=${EMSDK}/emscripten/sdk
+
 ENV EM_DATA ${EMSDK}/.data
 ENV EM_CONFIG ${EMSDK}/.emscripten
 ENV EM_CACHE ${EM_DATA}/cache
@@ -22,7 +23,7 @@ ENV EM_PORTS ${EM_DATA}/ports
 
 # Fallback in case Emscripten isn't activated
 # Expose Major tools to system PATH, so that emcc, node, asm2wasm etc can be used without activation
-ENV PATH="${EMSCRIPTEN}:${EMSDK}:${EMSDK}/llvm/clang/bin:${EMSDK}/node/current/bin:${EMSDK}/binaryen/bin:${PATH}"
+ENV PATH="${EMSDK}:${EMSDK}/emscripten/sdk:${EMSDK}/llvm/clang/bin:${EMSDK}/node/current/bin:${EMSDK}/binaryen/bin:${PATH}"
 
 # Use entrypoint that's coming from emscripten-slim image. It sets all required system paths and variables
 ENTRYPOINT ["/emsdk_portable/entrypoint"]
