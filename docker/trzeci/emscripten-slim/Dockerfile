@@ -11,10 +11,10 @@ FROM debian:stretch AS stage_build
 # - is able to work with further changes coming from SDK updates (`emsdk install ...`, etc)
 # - contains some useful symbolic links that makes sure you can use Emscripten SDK in the same way, regardless of version that it holds
 # Created symbolic links:
-# - `/emsdk_portable/emscripten/sdk`: Points to folder that holds Emscripten SDK tools like `emcc`, (example: `/emsdk_portable/emscripten/tag-1.38.31)
-# - `/emsdk_portable/binaryen/bin`: (example: `/emsdk_portable/tag-1.38.31_64bit_binaryen/bin)
-# - `/emsdk_portable/llvm/clang`: Emscripten version of Clang (example: `/emsdk_portable/clang/tag-1.38.31/build_tag-1.38.31_64)
-# - `/emsdk_portable/node/current`: Embedded version of NodeJS (example: `/emsdk_portable/node/8.9.1_64bit)
+# - `/emsdk_portable/emscripten/sdk`: Points to folder that holds Emscripten SDK tools like `emcc`, (example: `/emsdk_portable/emscripten/tag-1.38.31`)
+# - `/emsdk_portable/binaryen/bin`: (example: `/emsdk_portable/tag-1.38.31_64bit_binaryen/bin`)
+# - `/emsdk_portable/llvm/clang`: Emscripten version of Clang (example: `/emsdk_portable/clang/tag-1.38.31/build_tag-1.38.31_64`)
+# - `/emsdk_portable/node/current`: Embedded version of NodeJS (example: `/emsdk_portable/node/8.9.1_64bit`)
 
 # ------------------------------------------------------------------------------
 # -------------------------------- STAGE BUILD  --------------------------------
@@ -311,12 +311,10 @@ WORKDIR /src
 # Copy this Dockerimage into image, so that it will be possible to recreate it later
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-slim/
 
-# ARG VCS_REF=master
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \
       org.label-schema.description="This image includes EMSDK, Emscripten and WebAssembly compiler and tools that are very required to compile sources." \
       org.label-schema.url="https://trzeci.eu" \
-    #   org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/trzecieu/emscripten-docker" \
       org.label-schema.docker.dockerfile="/docker/trzeci/emscripten-slim/Dockerfile"
 

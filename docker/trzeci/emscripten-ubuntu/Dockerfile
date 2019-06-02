@@ -67,12 +67,10 @@ WORKDIR /src
 # Copy this Dockerimage into image, so that it will be possible to recreate it later
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-ubuntu/
 
-# ARG VCS_REF=master
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-ubuntu" \
       org.label-schema.description="Regular version of Emscripten compiler what should be suitable to compile majority of C++ projects for Emscripten, ASM.js and WebAssembly." \
       org.label-schema.url="https://trzeci.eu" \
-#       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/trzecieu/emscripten-docker" \
       org.label-schema.docker.dockerfile="/docker/trzeci/emscripten-ubuntu/Dockerfile"
 
