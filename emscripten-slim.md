@@ -189,21 +189,22 @@ docker inspect  --format '{{ index .Config.Labels "org.label-schema.vcs-ref"}}' 
 ## History
 <sub>(Please note that following history refers only to the history of this Docker Image and how it was build / what includes. For release notes of emscripten, please follow https://emscripten.org)</sub>
 
-* **1.38.33**: [#44](https://github.com/trzecieu/emscripten-docker/issues/44) Significant refactoring of base image emscripten-slim. Which includes:
+* **1.38.33**: [#44](https://github.com/trzecieu/emscripten-docker/issues/44) Significant refactoring of base image emscripten-slim. Please visit issue, to get extended context and motivation.
   * Improvements:
     * `/emsdk_portable` is fully moveable folder that can be used as a `COPY --from` source of multi stage build
     * `/emsdk_portable/dockerfiles` contains Dockerfile sources used to compile a particular image - so that it should be fairly easy to replicate and inspect content of images
     * `emsdk` should be fully functional tool now, so that can be used for upgrading bundled emscripten SDK or to install extra tools
-    * Even further size optimization by stripping out symbols from node.js and emscripten-clang tools
-
+    * Even further size optimization (From ~190MB to ~160MB) by:
+      * stripping out symbols from node.js and emscripten-clang tools
+      * change base image to `debiang:stretch-slim`
+      * remove non-essential files from emscripten folder
+    * Add enhanced entrypoint which also fixes files permission on created files
   * Breaking Changes:
-    * Image has to be executed with boundled entrypoint (`/emsdk_portable/emscripten`)
-    * Image no longer creates system symbolic links
-    * Image no longer preserves folder structure between versions (like Clang tools were always placed in `/emsdk_portable/llvm`)
+    * Image no longer creates system symbolic links to every known tool.
+      * Instead it adds folders to system `$PATH`
+    * Image no longer preserves folder structure between versions, some tool might be placed in different location between versions
+      * Instead it creates symbolic links in fixed locations that match old structure
     * `nodejs` is no longer symlinked (`node` should be used instead)
-    * If image is accessed bypassing entrypoint, then `$EMSCRIPTEN` environment variable isn't set.
-
-Please follow GitHub issue for more information.
 * **1.38.26** [#36](https://github.com/trzecieu/emscripten-docker/issues/36) - Reduce image size from 330MB to 189MB
 * **1.38.20** [#34](https://github.com/trzecieu/emscripten-docker/issues/34) - Fix error when `emcc` tries to read internal documentation
 * **1.38.17** Version ignored due problems with [Emscripten]
