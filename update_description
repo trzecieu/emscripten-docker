@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+
+let dockerHubAPI = require('docker-hub-api');
+let fs = require("fs");
+let subprocess = require("child_process");
+
+function nice_format_packages(packages_string) {
+    let lines = packages_string.trim().split("\n");
+    lines = lines.map((v, i, a) => {
+        let parts = v.split(":");
+        return `|\`${parts[0]}\`|**${parts[1]}**|`
+    });
+
+    return "|package|version|\n|---|---|\n" + lines.join("\n");
+}
+function load_and_add_meta(project) {
+    let data = fs.readFileSync(project.file).toString();
+    let keys = {
+        "footer": "Generated on: " + new Date().toISOString(),
+        "installed_packages": nice_format_packages(subprocess.execSync(`docker run --rm  -v ${__dirname}/scripts:/src -w /src ${project.image} ./list_packages_${project.type}.sh`).toString("utf-8"))
+    }
+    for (const key in keys) {
+        data = data.replace(`<!-- ${key} -->`, keys[key]);
+    }
+    return data
+}
+
+let descriptions = {
+    "emscripten" : {
+        short: "A complete container that allows to compile Emscripten and WebAssembly project",
+        long: load_and_add_meta({
+            image: "trzeci/emscripten",
+            file: "./emscripten.md",
+            type: "debian",
+        }),
+    },
+    "emscripten-slim" : {
+        short: "Size optimized image with Emscripten that allows to compile ASM.js and WebAssbemly code. ",
+        long: load_and_add_meta({
+            image: "trzeci/emscripten-slim",
+            file: "./emscripten-slim.md",
+            type: "debian",
+        }),
+    },
+}
+
+dockerHubAPI.login(process.env.DOCKER_HUB_USERNAME, process.env.DOCKER_HUB_PASSWORD).then(() => {
+    for (let repo in descriptions) {
+        dockerHubAPI.setRepositoryDescription("trzeci", "test", {
+            short: descriptions[repo].short,
+            full: descriptions[repo].long,
+        })
+    }
+})

@@ -311,10 +311,12 @@ WORKDIR /src
 # Copy this Dockerimage into image, so that it will be possible to recreate it later
 COPY Dockerfile /emsdk_portable/dockerfiles/trzeci/emscripten-slim/
 
+# ARG VCS_REF=master
 LABEL maintainer="kontakt@trzeci.eu" \
       org.label-schema.name="emscripten-slim" \
       org.label-schema.description="This image includes EMSDK, Emscripten and WebAssembly compiler and tools that are very required to compile sources." \
       org.label-schema.url="https://trzeci.eu" \
+    #   org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/trzecieu/emscripten-docker" \
       org.label-schema.docker.dockerfile="/docker/trzeci/emscripten-slim/Dockerfile"
 
