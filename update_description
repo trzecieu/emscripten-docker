@@ -46,7 +46,7 @@ let descriptions = {
 
 dockerHubAPI.login(process.env.DOCKER_HUB_USERNAME, process.env.DOCKER_HUB_PASSWORD).then(() => {
     for (let repo in descriptions) {
-        dockerHubAPI.setRepositoryDescription("trzeci", "test", {
+        dockerHubAPI.setRepositoryDescription("trzeci", repo, {
             short: descriptions[repo].short,
             full: descriptions[repo].long,
         })
