@@ -39,6 +39,7 @@ RUN echo "## Update and install packages" \
         git-core \
         ca-certificates \
         build-essential \
+        file \
         python \
         python-pip \
 &&  echo "## Done"

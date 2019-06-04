@@ -79,7 +79,7 @@ RUN echo "## Start building" \
     &&	rm -rf /usr/share/doc/* \
     &&	rm -rf /usr/share/man/?? \
     &&	rm -rf /usr/share/man/??_* \
-    &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
+    # &&	cp -R /usr/share/locale/en\@* /tmp/ && rm -rf /usr/share/locale/* && mv /tmp/en\@* /usr/share/locale/ \
     \
     &&  chmod -R 777 ${EM_DATA} \
 &&	echo "## Done"
