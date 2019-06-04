@@ -146,6 +146,7 @@ Basically you can use whatever base system of choice and copy content of `/emsdk
 ```bash
 docker build -t my_little_emscripten_image --build-arg EMSCRIPTEN_SDK=sdk-tag-1.38.31-64bit .
 ```
+
 ## Reproduce old builds
 As EMSDK and Emscripten and even this Docker Image are under an extensive development some scripts might change in meantime.
 
