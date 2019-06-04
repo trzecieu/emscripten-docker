@@ -429,9 +429,6 @@ def compile_image(image_id, emsdk_cs):
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
             "--build-arg", "EMSDK_CHANGESET=" + emsdk_cs,
-            "--build-arg", "BUILD_DATE=" + datetime.datetime.now().isoformat('T'),
-            # "--build-arg", "BUILD_DATE=0",
-            "--build-arg", "VCS_REF=" + subprocess.check_output("git rev-parse --short HEAD".split(" ")).strip(),
             "docker/" + docker_project
         ], stdout=subprocess.PIPE)
 
@@ -463,7 +460,7 @@ def compile_image(image_id, emsdk_cs):
             if r:
                 dashboard.trace(r.groups()[0])
                 continue
-
+    p.communicate()
     log("[INFO] Compiled [{tag}] in: {time}".format(tag=image_id, time=str(datetime.datetime.now() - t_start)), True)
     return False if p.returncode else True
 
