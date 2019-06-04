@@ -12,19 +12,22 @@ FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
 RUN echo "## Start building" \
     \
 &&	echo "## Update and install packages" \
-    &&	apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
-        wget \
-        curl \
-        zip \
-        unzip \
-        git \
-        ssh-client \
-        ca-certificates \
-        build-essential \
-        make \
-        ant \
-        libidn11 \
-        openjdk-8-jre-headless \
+    &&	apt-get -qq -y update \
+    # mitigate problem with create symlink to man
+    &&  mkdir -p /usr/share/man/man1/ \
+    &&  apt-get -qq install -y --no-install-recommends \
+            wget \
+            curl \
+            zip \
+            unzip \
+            git \
+            ssh-client \
+            ca-certificates \
+            build-essential \
+            make \
+            ant \
+            libidn11 \
+            openjdk-8-jre-headless \
     \
 &&	echo "## Installing CMake" \
     &&	wget https://cmake.org/files/v3.14/cmake-3.14.3-Linux-x86_64.sh -q \
