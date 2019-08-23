@@ -418,19 +418,24 @@ def get_builds(tags, update=False, branches=None, releases=False):
     return result
 
 
-def compile_image(image_id, emsdk_cs):
+def compile_image(image_id, emsdk_cs, no_cache = False):
     t_start = datetime.datetime.now()
     docker_project, emscripten_sdk = DockerHelper.decompose_image_id(image_id)
     log("[INFO] Start compiling [{i}]".format(i=image_id))
     with open("build_{}.log".format(image_id.replace("/","_")), "w") as f:
-        p = subprocess.Popen([
+        cmd = []
+        cmd += [
             "docker",
             "build",
+        ]
+        cmd += ["--no-cache"] if no_cache else []
+        cmd += [
             "-t", image_id,
             "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
             "--build-arg", "EMSDK_CHANGESET=" + emsdk_cs,
             "docker/" + docker_project
-        ], stdout=subprocess.PIPE)
+        ]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
         for l in iter(p.stdout.readline, ''):
             f.write(l)
@@ -582,7 +587,7 @@ def compile(args):
             image_id = v.full_name
             dashboard.set_task(image_id, i + 1, len(s.variants))
 
-            if compile_image(image_id, args.emsdk_cs) and EmscriptenTester.test_image(image_id) :
+            if compile_image(image_id, args.emsdk_cs, no_cache = args.no_cache) and EmscriptenTester.test_image(image_id) :
                 log("{} - SUCCESS".format(image_id), True)
             else:
                 log("{} - FAIL".format(image_id), True)
@@ -673,6 +678,7 @@ if __name__ == "__main__":
 
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
+    parser_push.add_argument("--no-cache", action="store_true", help="Sets --no-cache for docker build command")
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
     parser_push.set_defaults(function=push)
 

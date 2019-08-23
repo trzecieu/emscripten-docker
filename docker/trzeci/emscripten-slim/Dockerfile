@@ -53,7 +53,7 @@ RUN  echo "## Installing CMake" \
 &&  echo "## Done"
 
 RUN  echo "## Get EMSDK" \
-    &&  git clone https://github.com/juj/emsdk.git ${EMSDK} && cd ${EMSDK} && git reset --hard ${EMSDK_CHANGESET} \
+    &&  git clone https://github.com/emscripten-core/emsdk.git ${EMSDK} && cd ${EMSDK} && git reset --hard ${EMSDK_CHANGESET} \
         \
     # Update emscripten-tags.txt file manually with request version, this will tell emsdk that wanted version to compile is available
     &&  echo ${EMSCRIPTEN_SDK} | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
