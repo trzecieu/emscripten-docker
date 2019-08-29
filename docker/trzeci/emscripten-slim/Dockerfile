@@ -3,7 +3,7 @@ FROM debian:stretch AS stage_build
 # ------------------------------ ABOUT THIS IMAGE  -----------------------------
 # This Dockerfile has two major sections:
 # * STAGE BUILD: Which uses required tools to build a static version of Emscripten SDK
-# * STAGE DEPLOY: Which copies folder of Emscripten (/emsd_portable) from previous stage, and installs very based tools to make Emscripten work.
+# * STAGE DEPLOY: Which copies folder of Emscripten (/emsdk_portable) from previous stage, and installs very based tools to make Emscripten work.
 #
 # Compiled Emscripten SDK meant to be ready to go out of the shelf. That is `/emsdk_portable`:
 # - contains every required part of Emscripten SDK
@@ -19,8 +19,8 @@ FROM debian:stretch AS stage_build
 # ------------------------------------------------------------------------------
 # -------------------------------- STAGE BUILD  --------------------------------
 # ------------------------------------------------------------------------------
-
-ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
+ARG EMSCRIPTEN_VERSION=1.38.33
+ARG EMSCRIPTEN_SDK=sdk-tag-${EMSCRIPTEN_VERSION}-64bit
 ARG EMSDK_CHANGESET=master
 
 # ------------------------------------------------------------------------------
@@ -44,7 +44,6 @@ RUN echo "## Update and install packages" \
         python-pip \
 &&  echo "## Done"
 
-
 RUN  echo "## Installing CMake" \
     &&  wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
     &&  mkdir /opt/cmake \
@@ -55,9 +54,72 @@ RUN  echo "## Installing CMake" \
 RUN  echo "## Get EMSDK" \
     &&  git clone https://github.com/emscripten-core/emsdk.git ${EMSDK} && cd ${EMSDK} && git reset --hard ${EMSDK_CHANGESET} \
         \
-    # Update emscripten-tags.txt file manually with request version, this will tell emsdk that wanted version to compile is available
-    &&  echo ${EMSCRIPTEN_SDK} | sed  's/.\+-\([0-9]\+\.[0-9]\+\.[0-9]\+\).\+/\1/g' > emscripten-tags.txt \
+    &&  ./emsdk.py update-tags \
+    &&  releases_revision=`cat ./emscripten-releases-tags.txt | sed -n "s/.*${EMSCRIPTEN_VERSION}.*\"\(.*\)\".*/\1/p"` \
+    &&  ( cd releases && git reset --hard ${releases_revision} ) \
 &&  echo "## Done"
+
+# ------------------------------------------------------------------------------
+# This sections aims to mitigate new waterfall build system that has been used in emscripten
+# and the fact that it's not possible anymore to build new SDKs from sources
+
+    RUN  echo "## Compose Fastcomp" \
+        &&  cd ${EMSDK} && mkdir -p zips \
+            \
+        &&  repository=https://github.com/emscripten-core/emscripten-fastcomp \
+        &&  revision=`cat ./releases/DEPS | sed -n "s/.*fastcomp_revision.*'\(.*\)'.*/\1/p"` \
+        &&  touch ./zips/llvm-e${EMSCRIPTEN_VERSION}.tar.gz \
+        &&  git clone $repository clang/tag-e${EMSCRIPTEN_VERSION}/src \
+        &&  (cd clang/tag-e${EMSCRIPTEN_VERSION}/src && git reset --hard ${revision}) \
+            \
+    &&  echo "## Done"
+
+    RUN  echo "## Compose Fastcomp - Clang" \
+        &&  cd ${EMSDK} && mkdir -p zips \
+            \
+        &&  repository=https://github.com/emscripten-core/emscripten-fastcomp-clang \
+        &&  revision=`cat ./releases/DEPS | sed -n "s/.*fastcomp_clang_revision.*'\(.*\)'.*/\1/p"` \
+        &&  touch ./zips/clang-e${EMSCRIPTEN_VERSION}.tar.gz \
+        &&  git clone $repository clang/tag-e${EMSCRIPTEN_VERSION}/src/tools/clang \
+        &&  (cd clang/tag-e${EMSCRIPTEN_VERSION}/src/tools/clang && git reset --hard ${revision}) \
+            \
+    &&  echo "## Done"
+
+    RUN  echo "## Compose Binaryen" \
+        &&  cd ${EMSDK} && mkdir -p zips \
+            \
+        &&  repository=https://github.com/WebAssembly/binaryen \
+        &&  revision=`cat ./releases/DEPS | sed -n "s/.*binaryen_revision.*'\(.*\)'.*/\1/p"` \
+        &&  touch ./zips/binaryen-e${EMSCRIPTEN_VERSION}.tar.gz \
+        &&  git clone $repository binaryen/tag-${EMSCRIPTEN_VERSION} \
+        &&  (cd binaryen/tag-${EMSCRIPTEN_VERSION} && git reset --hard ${revision}) \
+            \
+    &&  echo "## Done"
+
+    RUN  echo "## Compose Emscripten" \
+        &&  cd ${EMSDK} && mkdir -p zips \
+            \
+        &&  repository=https://github.com/emscripten-core/emscripten \
+        &&  revision=`cat ./releases/DEPS | sed -n "s/.*emscripten_revision.*'\(.*\)'.*/\1/p"` \
+        &&  touch ./zips/emscripten-e${EMSCRIPTEN_VERSION}.tar.gz \
+        &&  git clone $repository emscripten/tag-${EMSCRIPTEN_VERSION} \
+        &&  (cd emscripten/tag-${EMSCRIPTEN_VERSION} && git reset --hard ${revision}) \
+            \
+    &&  echo "## Done"
+
+    # patch emsdk in order to install all required tools from repositories
+    # fix for: #45 #46
+    RUN  echo "## Patch EMSDK" \
+        &&  cd ${EMSDK} \
+        &&  printf "\n${EMSCRIPTEN_VERSION}" > legacy-emscripten-tags.txt \
+        &&  printf "\n${EMSCRIPTEN_VERSION}" > legacy-binaryen-tags.txt \
+        &&  sed -i 's/download_even_if_exists = True/download_even_if_exists = False # a hack to install binaryen from repo/' ./emsdk.py \
+        &&  sed -i "s/.*${EMSCRIPTEN_VERSION}.*//g" ./emscripten-releases-tags.txt \
+        &&  echo "\"${EMSCRIPTEN_VERSION}\"" > ./emscripten/tag-${EMSCRIPTEN_VERSION}/emscripten-version.txt \
+    &&  echo "## Done"
+
+# / end of work-around section
+# ------------------------------------------------------------------------------
 
 RUN echo "## Compile Emscripten" \
     &&  cd ${EMSDK} \
@@ -66,7 +128,7 @@ RUN echo "## Compile Emscripten" \
     # Compile llvm with dynamic libs support
     # This will create local shared objects that are used on all LLVM tool.
     # It significantly reduces final size of image.
-    &&  LLVM_CMAKE_ARGS=-DLLVM_LINK_LLVM_DYLIB=ON,-DLLVM_LINK_LLVM_DYLIB=ON \
+    &&  LLVM_CMAKE_ARGS=-DLLVM_LINK_LLVM_DYLIB=ON \
         ./emsdk install --build=MinSizeRel ${EMSCRIPTEN_SDK} \
         \
 &&  echo "## Done"
@@ -282,6 +344,8 @@ RUN echo "## Update and install packages" \
         ca-certificates \
         python \
         python-pip \
+        python3 \
+        python3-pip \
     \
     # Standard Cleanup on Debian images
     &&  apt-get -y clean \
@@ -335,6 +399,8 @@ RUN echo "## Internal Testing of image (activated)" \
     &&  npm --version \
     &&  python --version \
     &&  pip --version \
+    &&  python3 --version \
+    &&  pip3 --version \
     \
     &&  em++ --version \
     &&  emcc --version \
@@ -356,6 +422,8 @@ RUN echo "## Internal Testing of image (no activation)" \
     &&  npm --version \
     &&  python --version \
     &&  pip --version \
+    &&  python3 --version \
+    &&  pip3 --version \
     \
     &&  em++ --version \
     &&  emcc --version \

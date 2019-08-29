@@ -1,5 +1,5 @@
-ARG EMSCRIPTEN_SDK=sdk-tag-1.37.16-64bit
-FROM trzeci/emscripten-slim:${EMSCRIPTEN_SDK}
+ARG EMSCRIPTEN_VERSION=1.38.33
+FROM trzeci/emscripten-slim:sdk-tag-${EMSCRIPTEN_VERSION}-64bit
 
 # ------------------------------ ABOUT THIS IMAGE  -----------------------------
 # This image shows one way of extending base image which is `emscripten-slim` by

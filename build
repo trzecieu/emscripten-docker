@@ -47,6 +47,7 @@ LOG_COMPILATION = "build.log"
 SDK_IGNORED = [
     "1.38.7", # malformed due an incompatibility with EMSDK release
     "1.38.17", # ignored due an SDK error
+    "1.38.33", # broken dependency between emscipten<>emscripten-releases
 ]
 
 TEST_CASES = {
@@ -320,7 +321,8 @@ class DockerHelper:
     def decompose_image_id(image_id):
         print(image_id)
         project, tag = image_id.split(":")
-        return (project, tag)
+        version = re.match(r'.+(\d+\.\d+\.\d+).+', tag).groups()[0]
+        return (project, tag, version)
 
     @staticmethod
     def push_image(image, clean=False):
@@ -420,7 +422,9 @@ def get_builds(tags, update=False, branches=None, releases=False):
 
 def compile_image(image_id, emsdk_cs, no_cache = False):
     t_start = datetime.datetime.now()
-    docker_project, emscripten_sdk = DockerHelper.decompose_image_id(image_id)
+    print("---")
+    print(image_id)
+    docker_project, emscripten_sdk, emscripten_version = DockerHelper.decompose_image_id(image_id)
     log("[INFO] Start compiling [{i}]".format(i=image_id))
     with open("build_{}.log".format(image_id.replace("/","_")), "w") as f:
         cmd = []
@@ -431,7 +435,8 @@ def compile_image(image_id, emsdk_cs, no_cache = False):
         cmd += ["--no-cache"] if no_cache else []
         cmd += [
             "-t", image_id,
-            "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
+            # "--build-arg", "EMSCRIPTEN_SDK=" + emscripten_sdk,
+            "--build-arg", "EMSCRIPTEN_VERSION=" + emscripten_version,
             "--build-arg", "EMSDK_CHANGESET=" + emsdk_cs,
             "docker/" + docker_project
         ]
@@ -570,6 +575,11 @@ def create_compilation_sets(variants):
 
 def compile(args):
     """Build images, and push tags to the queue"""
+
+    assert(not args.branches)   # not supported ATM
+    assert(not args.incoming)   # not supported ATM
+    assert(not args.master)     # not supported ATM
+
     variants = get_variants_to_compile(args)
     sets = create_compilation_sets(variants)
 
@@ -586,7 +596,6 @@ def compile(args):
         for i, v in enumerate(s.variants):
             image_id = v.full_name
             dashboard.set_task(image_id, i + 1, len(s.variants))
-
             if compile_image(image_id, args.emsdk_cs, no_cache = args.no_cache) and EmscriptenTester.test_image(image_id) :
                 log("{} - SUCCESS".format(image_id), True)
             else:
@@ -669,6 +678,7 @@ if __name__ == "__main__":
     parser_build.add_argument("--releases", action="store_true", help="Update released SDKs")
     parser_build.add_argument("--fast-fail", action="store_true", help="Stops queue after first failure")
     parser_build.add_argument("--emsdk-cs", default="master", help="Explicitly use given branch/changeset of juj/emsdk")
+    parser_build.add_argument("--no-cache", action="store_true", help="Sets --no-cache for docker build command")
 
     parser_test = subparsers.add_parser("test", help="Test given tag(s) with Emscripten and WebAssembly compatibility")
     parser_test.set_defaults(function=test)
@@ -678,7 +688,6 @@ if __name__ == "__main__":
 
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
-    parser_push.add_argument("--no-cache", action="store_true", help="Sets --no-cache for docker build command")
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
     parser_push.set_defaults(function=push)
 
@@ -687,4 +696,5 @@ if __name__ == "__main__":
     parser_set_latest.set_defaults(function=set_latest)
 
     args = parser.parse_args()
+
     args.function(args)

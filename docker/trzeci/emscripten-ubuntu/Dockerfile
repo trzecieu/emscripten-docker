@@ -1,5 +1,5 @@
-ARG EMSCRIPTEN_SDK=sdk-tag-1.38.25-64bit
-FROM trzeci/emscripten:${EMSCRIPTEN_SDK} as emscripten_base
+ARG EMSCRIPTEN_VERSION=1.38.33
+FROM trzeci/emscripten:sdk-tag-${EMSCRIPTEN_VERSION}-64bit as emscripten_base
 
 # ------------------------------------------------------------------------------
 # Entries in this section is required to move Emscripten SDK to another base image
