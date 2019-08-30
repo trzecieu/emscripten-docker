@@ -21,6 +21,9 @@ from itertools import repeat
 EMSDK_GIT_REPO = "https://github.com/emscripten-core/emscripten/"
 DOCKER_REGISTRY = "registry.hub.docker.com"
 
+GH_DOCKER_REGISTRY = "docker.pkg.github.com"
+GH_DOCKER_REPO = "trzecieu/emscripten-docker"
+
 DOCKER_REPO = "trzeci/emscripten"
 DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
 DOCKER_REPO_ALPINE = "trzeci/emscripten-alpine"
@@ -336,6 +339,11 @@ class DockerHelper:
                     subprocess.call(["docker", "rmi", "-f", image])
                 return
         log("[ERROR] Pushing {image} failed.".format(image=image))
+
+    @staticmethod
+    def tag(old, new):
+        subprocess.call(["docker", "tag", old, new])
+        return
 
 class DockerRegistry:
     def __init__(self):
@@ -656,6 +664,11 @@ def push(args):
                     fout.writelines(data[1:])
                 if tag_to_send:
                     DockerHelper.push_image(tag_to_send, args.clean)
+                    if args.push_gh:
+                        new_tag = GH_DOCKER_REGISTRY + "/" + GH_DOCKER_REPO + "/" + tag_to_send.split("/")[-1]
+                        DockerHelper.tag(tag_to_send, new_tag)
+                        DockerHelper.push_image(new_tag, args.clean)
+
                     pushed = True
         if not pushed and args.no_block:
             log("[INFO] Nothing to do here, queue is empty")
@@ -689,6 +702,7 @@ if __name__ == "__main__":
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
+    parser_push.add_argument("--push-gh", action="store_true", help="Push to GH registry")
     parser_push.set_defaults(function=push)
 
     parser_set_latest = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
