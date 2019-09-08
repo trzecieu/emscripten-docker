@@ -13,6 +13,7 @@ import sys
 # TODO: investigate better mailing reports.
 # TODO: docker ps --filter "status=exited" | grep 'hours ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
 
+
 # from urllib import urlopen
 from urllib2 import Request, urlopen
 from itertools import repeat
@@ -28,12 +29,14 @@ DOCKER_REPO = "trzeci/emscripten"
 DOCKER_REPO_SLIM = "trzeci/emscripten-slim"
 DOCKER_REPO_ALPINE = "trzeci/emscripten-alpine"
 DOCKER_REPO_UBUNTU = "trzeci/emscripten-ubuntu"
+DOCKER_REPO_UPSTREAM = "trzeci/emscripten-upstream"
 
 DOCKER_REPO_VARIANTS = [
     DOCKER_REPO_SLIM,
     # DOCKER_REPO_ALPINE,
     DOCKER_REPO,
     DOCKER_REPO_UBUNTU,
+    DOCKER_REPO_UPSTREAM,
 ]
 
 sort_variants_lut = {
@@ -41,6 +44,7 @@ sort_variants_lut = {
     "emscripten-alpine" : 1,
     "emscripten" : 2,
     "emscripten-ubuntu" : 3,
+    "emscripten-upstream" : 4,
 }
 
 SDK_MIN = "1.37.16"
@@ -60,6 +64,7 @@ TEST_CASES = {
         "node --version",
         "python --version",
         "embuilder.py build zlib", # tests if https is available
+        "/emsdk_portable/emsdk list",
     ],
     DOCKER_REPO_ALPINE : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -67,6 +72,7 @@ TEST_CASES = {
         "node --version",
         "python --version",
         "embuilder.py build zlib", # tests if https is available
+        "/emsdk_portable/emsdk list",
     ],
     DOCKER_REPO : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -84,6 +90,27 @@ TEST_CASES = {
         "git --version",
         "which ssh",
         "perl --version",
+        "java -version",
+        "/emsdk_portable/emsdk list",
+    ],
+    DOCKER_REPO_UPSTREAM : [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib", # tests if https is available
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+        "java -version",
+        "/emsdk_portable/emsdk list",
     ],
     DOCKER_REPO_UBUNTU : [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -101,6 +128,7 @@ TEST_CASES = {
         "git --version",
         "which ssh",
         "perl --version",
+        "/emsdk_portable/emsdk list",
     ],
 }
 
@@ -703,7 +731,7 @@ if __name__ == "__main__":
     parser_push = subparsers.add_parser("push", help="Runs a service what will push created images")
     parser_push.add_argument("--clean", action="store_true", help="Remove pushed images")
     parser_push.add_argument("--no-block", action="store_true", help="Don't wait if queue is empty")
-    parser_push.add_argument("--push-gh", action="store_true", help="Push to GH registry")
+    parser_push.add_argument("--push-gh", action="store_true", help="Push also to GH registry")
     parser_push.set_defaults(function=push)
 
     parser_set_latest = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
