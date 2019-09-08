@@ -125,6 +125,20 @@ RUN echo "## Create Testing Script" \
     \
 &&  echo "## Done"
 
+# Clean up emscripten installation and strip some symbols
+
+RUN apt-get -qq -y update && apt-get -qq install -y --no-install-recommends \
+        binutils \
+    && . ${EMSDK}/emsdk_set_env.sh \
+    # Remove debugging symbols from embedded node (extra 7MB)
+    && strip -s `which node` \
+    # Tests consume ~80MB disc space
+    && rm -fr ${EMSDK}/upstream/emscripten/tests \
+    # strip out symbols from clang (extra 50MB!)
+    && find ${EMSDK}/upstream/bin -type f -exec strip -s {} + || true \
+    && find ${EMSDK}/upstream/fastcomp/bin -type f -exec strip -s {} + || true \
+&&  echo "## Done"
+
 # Populate Emscripten SDK cache with libc++, to improve further compilation times.
 RUN echo "## Pre-populate cache" \
     &&  . ${EMSDK}/emsdk_set_env.sh \
