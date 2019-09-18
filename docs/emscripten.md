@@ -10,7 +10,7 @@ Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-dock
 
 ### Manually installed:
 
-|pacakage|version|
+|packages|version|
 |---|---|
 |`cmake`|**3.14.3**|
 
@@ -181,7 +181,8 @@ docker inspect  --format '{{ index .Config.Labels "org.label-schema.vcs-ref"}}' 
 ----
 
 ## Support
-* **GitHub / Issue tracker**: https://github.com/trzecieu/emscripten-docker
+* **GitHub / Issue tracker (for docker image)**: https://github.com/trzecieu/emscripten-docker
+* **GitHub / Issue tracker (for Emscripten)**: https://github.com/emscripten-core/emscripten
 * **Docker Hub: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
 * **Docker Hub: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
@@ -230,5 +231,3 @@ docker inspect  --format '{{ index .Config.Labels "org.label-schema.vcs-ref"}}' 
 ## License
 [![MIT](https://img.shields.io/github/license/trzecieu/emscripten-docker.svg?style=flat-square)](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
 
------
-<!-- footer -->

@@ -134,16 +134,6 @@ RUN echo "## Compile Emscripten" \
 &&  echo "## Done"
 
 # ------------------------------------------------------------------------------
-# Reverse applied changes
-    # patch emsdk in order to install all required tools from repositories
-    RUN  echo "## Patch EMSDK" \
-        &&  cd ${EMSDK} \
-        &&  git checkout -- emscripten-releases-tags.txt \
-        &&  git checkout -- ./emsdk.py \
-    &&  echo "## Done"
-# ------------------------------------------------------------------------------
-
-
 # This generates configuration that contains all valid paths according to installed SDK
 RUN cd ${EMSDK} \
     &&  echo "## Generate standard configuration" \
@@ -156,6 +146,16 @@ RUN cd ${EMSDK} \
         \
 &&  echo "## Done"
 
+# ------------------------------------------------------------------------------
+# Reverse applied changes
+    # patch emsdk in order to install all required tools from repositories
+    RUN  echo "## Patch EMSDK" \
+        &&  cd ${EMSDK} \
+        &&  git checkout -- emscripten-releases-tags.txt \
+        &&  git checkout -- ./emsdk.py \
+    &&  echo "## Done"
+
+# ------------------------------------------------------------------------------
 # Create a structure and make mutable folders accessible for r/w
 RUN cd ${EMSDK} \
     &&  echo "## Create .data structure" \

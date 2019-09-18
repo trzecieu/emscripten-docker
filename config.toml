@@ -1,0 +1,150 @@
+sdk_min="1.38.33"
+sdk_ignored= [
+    "1.38.7",   # malformed due an incompatibility with EMSDK release
+    "1.38.17",  # ignored due an SDK error
+    "1.38.33",  # broken dependency between emscripten<>emscripten-releases
+]
+
+[registries]
+    [registries.docker]
+    registry="registry.hub.docker.com"
+
+    [registries.github]
+    registry="docker.pkg.github.com"
+    namespace="trzecieu"
+
+# ------------------------------------------------------------------------------
+
+[[images]]
+    enabled=true
+    name="trzeci/emscripten-slim"
+    source="docker/trzeci/emscripten-slim"
+    build_tag="{namespace}/{project}:sdk-tag-{version}-64bit" # other images rely on that name
+    short="Size optimized image with Emscripten that allows to compile ASM.js and WebAsembly code."
+    long_from_file="docs/emscripten-slim.md"
+    dependency=[]
+    tags= [
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/emscripten:{version}-slim",
+    ]
+    tests= [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "node --version",
+        "python --version",
+        "embuilder.py build zlib",
+        "/emsdk_portable/emsdk list",
+    ]
+    [images.args]
+    EMSCRIPTEN_VERSION= "{version}"
+    EMSDK_CHANGESET= "{emsdk_cs}"
+
+# ------------------------------------------------------------------------------
+
+[[images]]
+    enabled=true
+    name="trzeci/emscripten"
+    source="docker/trzeci/emscripten"
+    build_tag="{namespace}/{project}:sdk-tag-{version}-64bit"
+    short="A complete container that allows to compile Emscripten and WebAssembly project"
+    long_from_file="docs/emscripten.md"
+    dependency=["trzeci/emscripten-slim"]
+    tags= [
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/emscripten:{version}",
+    ]
+    tests= [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib",
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+        "java -version",
+        "/emsdk_portable/emsdk list",
+    ]
+    [images.args]
+    EMSCRIPTEN_VERSION= "{version}"
+    EMSDK_CHANGESET= "{emsdk_cs}"
+
+# ------------------------------------------------------------------------------
+
+[[images]]
+    enabled=true
+    name="trzeci/emscripten-ubuntu"
+    source="docker/trzeci/emscripten-ubuntu"
+    build_tag="{namespace}/{project}:{version}"
+    short="A complete container that allows to compile Emscripten and WebAssembly project. Ubuntu based"
+    long_from_file="docs/emscripten-ubuntu.md"
+    dependency=["trzeci/emscripten"]
+    tags= [
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/emscripten:{version}-ubuntu",
+    ]
+    tests= [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib",
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+        "/emsdk_portable/emsdk list",
+    ]
+    [images.args]
+    EMSCRIPTEN_VERSION= "{version}"
+    EMSDK_CHANGESET= "{emsdk_cs}"
+
+# ------------------------------------------------------------------------------
+
+[[images]]
+    enabled=true
+    name="trzeci/emscripten-upstream"
+    source="docker/trzeci/emscripten-upstream"
+    build_tag="{namespace}/{project}:{version}"
+    short="A complete container that allows to compile Emscripten and WebAssembly project"
+    long_from_file="docs/emscripten-upstream.md"
+    dependency=[]
+    tags= [
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/emscripten:{version}-upstream",
+    ]
+    tests= [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib",
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+        "java -version",
+        "/emsdk_portable/emsdk list",
+    ]
+    [images.args]
+    EMSCRIPTEN_VERSION= "{version}"
+    EMSDK_CHANGESET= "{emsdk_cs}"

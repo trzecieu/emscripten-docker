@@ -1,47 +1,25 @@
-# Emscripten Docker
+# Emscripten Docker (Unofficial Image)
 [![Build Status](https://jenkins.trzeci.eu/buildStatus/icon?job=public%2Femscripten-docker.release&style=flat-square)](https://jenkins.trzeci.eu/job/public/job/emscripten-docker.release/)
 
 This repository contains source files for Docker Hub projects.
 
-__If you're looking for readme related to dockerimages, please see following table where to look for a specific readme.__
+__If you're looking for readme related to specific DockerImages, please see following table where to look for a specific readme.__
 
-## trzeci/emscripten-slim
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/)
-[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/)
-[![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-slim&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker)
+## Docker Files and Images
 
-| | |
-|-|-|
-|Docker Hub|[trzeci/emscripten-slim](https://hub.docker.com/r/trzeci/emscripten-slim/)|
-|Readme|[emscripten-slim.md](emscripten-slim.md)|
+| DockerHub | Dockerfile | Readme | Badges |
+| --- | --- | --- | --- |
+| [trzeci/emscripten-slim](https://hub.docker.com/r/trzeci/emscripten-slim/) | [Dockerfile](./docker/trzeci/emscripten-slim/Dockerfile) | [emscripten-slim.md](./docs/emscripten-slim.md) | [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-slim.svg)](https://store.docker.com/community/images/trzeci/emscripten-slim/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-slim.svg)](https://microbadger.com/images/trzeci/emscripten-slim/) [![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-slim&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker) |
+| [trzeci/emscripten](https://hub.docker.com/r/trzeci/emscripten/) | [Dockerfile](./docker/trzeci/emscripten/Dockerfile) | [emscripten.md](./docs/emscripten.md) | [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/) [![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker) |
+| [trzeci/emscripten-ubuntu](https://hub.docker.com/r/trzeci/emscripten-ubuntu/) | [Dockerfile](./docker/trzeci/emscripten-ubuntu/Dockerfile) | [emscripten-ubuntu.md](./docs/emscripten-ubuntu.md) | [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-ubuntu.svg)](https://store.docker.com/community/images/trzeci/emscripten-ubuntu/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-ubuntu.svg)](https://microbadger.com/images/trzeci/emscripten-ubuntu/) [![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-ubuntu&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker) |
+| [trzeci/emscripten-upstream](https://hub.docker.com/r/trzeci/emscripten-upstream/) | [Dockerfile](./docker/trzeci/emscripten-upstream/Dockerfile) | [emscripten-upstream.md](./docs/emscripten-upstream.md) | [![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-upstream.svg)](https://store.docker.com/community/images/trzeci/emscripten-upstream/) [![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-upstream.svg)](https://microbadger.com/images/trzeci/emscripten-upstream/) [![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-upstream&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker) |
 
-
-## trzeci/emscripten
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten.svg)](https://store.docker.com/community/images/trzeci/emscripten/)
-[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten.svg)](https://microbadger.com/images/trzeci/emscripten/)
-[![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker)
-
-| | |
-|-|-|
-|Docker Hub|[trzeci/emscripten](https://hub.docker.com/r/trzeci/emscripten/)|
-|Readme|[emscripten.md](emscripten.md)|
-
-
-## trzeci/emscripten-upstream
-[![Docker Pulls](https://img.shields.io/docker/pulls/trzeci/emscripten-upstream.svg)](https://store.docker.com/community/images/trzeci/emscripten-upstream/)
-[![Size](https://images.microbadger.com/badges/image/trzeci/emscripten-upstream.svg)](https://microbadger.com/images/trzeci/emscripten-upstream/)
-[![Sanity](https://badges.herokuapp.com/travis/trzecieu/emscripten-docker?env=IMAGE=trzeci/emscripten-upstream&label=hello)](https://travis-ci.org/trzecieu/emscripten-docker)
-
-| | |
-|-|-|
-|Docker Hub|[trzeci/emscripten-upstream](https://hub.docker.com/r/trzeci/emscripten-upstream/)|
-|Readme|[emscripten.md](emscripten.md)|
 
 
 ## Usage of build script
 ```
-./build --help
-usage: build [-h] {compile,test,push,set_latest} ...
+➜ python3 -m builder --help
+usage: __main__.py [-h] {compile,push,set_latest} ...
 
 Emscripten Image generator
 
@@ -49,11 +27,9 @@ optional arguments:
   -h, --help            show this help message and exit
 
 command:
-  {compile,test,push,set_latest}
+  {compile,push,set_latest}
                         Main work command
     compile             Compile Docker images.
-    test                Test given tag(s) with Emscripten and WebAssembly
-                        compatibility
     push                Runs a service what will push created images
     set_latest          Automatically sets the 'latest' tag
 ```

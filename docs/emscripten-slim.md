@@ -10,7 +10,7 @@ Each tag was build from single [Dockerfile](https://github.com/trzecieu/emscript
 
 ### Manually installed:
 
-|pacakage|version|
+|packages|version|
 |---|---|
 |`nodejs`|**8.9.1_64bit** (from EMSDK)|
 
@@ -181,7 +181,8 @@ docker inspect  --format '{{ index .Config.Labels "org.label-schema.vcs-ref"}}' 
 ----
 
 ## Support
-* **GitHub / Issue tracker**: https://github.com/trzecieu/emscripten-docker
+* **GitHub / Issue tracker (for docker image)**: https://github.com/trzecieu/emscripten-docker
+* **GitHub / Issue tracker (for Emscripten)**: https://github.com/emscripten-core/emscripten
 * **Docker: emscripten**: https://hub.docker.com/r/trzeci/emscripten/
 * **Docker: emscripten-slim**: https://hub.docker.com/r/trzeci/emscripten-slim/
 
@@ -228,6 +229,3 @@ docker inspect  --format '{{ index .Config.Labels "org.label-schema.vcs-ref"}}' 
 
 ## License
 [![MIT](https://img.shields.io/github/license/trzecieu/emscripten-docker.svg?style=flat-square)](https://github.com/trzecieu/emscripten-docker/blob/master/LICENSE)
-
------
-<!-- footer -->
