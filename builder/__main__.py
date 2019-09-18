@@ -416,7 +416,7 @@ def compile(args):
         set_compiled = True
         build_descriptions = []
         for i, v in enumerate(s.variants):
-            dashboard.set_task(v.name, i + 1, len(s.variants))
+            dashboard.set_task(v, i + 1, len(s.variants))
             registries = [
                 config["registries"]["docker"]
             ]
