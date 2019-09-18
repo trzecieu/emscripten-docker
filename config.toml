@@ -148,3 +148,40 @@ sdk_ignored= [
     [images.args]
     EMSCRIPTEN_VERSION= "{version}"
     EMSDK_CHANGESET= "{emsdk_cs}"
+
+# ------------------------------------------------------------------------------
+
+[[images]]
+    enabled=true
+    name="trzeci/emscripten-fastcomp"
+    source="docker/trzeci/emscripten-fastcomp"
+    build_tag="{namespace}/{project}:{version}"
+    short="A complete container that allows to compile Emscripten and WebAssembly project"
+    long_from_file="docs/emscripten-fastcomp.md"
+    dependency=[]
+    tags= [
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/emscripten:{version}-fastcomp",
+    ]
+    tests= [
+        "emcc test.cpp -o test.js -s WASM=0 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=1 && node test.js",
+        "embuilder.py build zlib",
+        "node --version",
+        "python --version",
+        "wget --version",
+        "curl --version",
+        "zip --version",
+        "unzip -version",
+        "make --version",
+        "cmake --version",
+        "git --version",
+        "which ssh",
+        "perl --version",
+        "java -version",
+        "/emsdk_portable/emsdk list",
+    ]
+    [images.args]
+    EMSCRIPTEN_VERSION= "{version}"
+    EMSDK_CHANGESET= "{emsdk_cs}"

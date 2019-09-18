@@ -1,5 +1,5 @@
 #### Info
-Version of `trzeci/emscripten` that uses upstream compiler instead of fastcomp.
+Version of `trzeci/emscripten` that uses official precompiled upstream binaries.
 
 More info to be added soon...
 
