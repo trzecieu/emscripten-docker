@@ -7,7 +7,7 @@ sdk_ignored= [
 
 [registries]
     [registries.docker]
-    registry="registry.hub.docker.com"
+    registry="docker.io"
 
     [registries.github]
     registry="docker.pkg.github.com"
@@ -24,8 +24,9 @@ sdk_ignored= [
     long_from_file="docs/emscripten-slim.md"
     dependency=[]
     tags= [
-        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
         "{registry}/{namespace}/emscripten:{version}-slim",
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/{project}:{version}",
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -51,7 +52,7 @@ sdk_ignored= [
     dependency=["trzeci/emscripten-slim"]
     tags= [
         "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
-        "{registry}/{namespace}/emscripten:{version}",
+        "{registry}/{namespace}/{project}:{version}",
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -87,8 +88,9 @@ sdk_ignored= [
     long_from_file="docs/emscripten-ubuntu.md"
     dependency=["trzeci/emscripten"]
     tags= [
-        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
         "{registry}/{namespace}/emscripten:{version}-ubuntu",
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/{project}:{version}",
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -123,8 +125,9 @@ sdk_ignored= [
     long_from_file="docs/emscripten-upstream.md"
     dependency=[]
     tags= [
-        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
         "{registry}/{namespace}/emscripten:{version}-upstream",
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/{project}:{version}",
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
@@ -160,8 +163,9 @@ sdk_ignored= [
     long_from_file="docs/emscripten-fastcomp.md"
     dependency=[]
     tags= [
-        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
         "{registry}/{namespace}/emscripten:{version}-fastcomp",
+        "{registry}/{namespace}/{project}:sdk-tag-{version}-64bit",
+        "{registry}/{namespace}/{project}:{version}",
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",

@@ -114,11 +114,16 @@ class DockerRegistry:
                 "Accept" : "application/vnd.docker.distribution.manifest.v2+json"
             })
         )
-        return json.loads(urlopen(r).read())
+        data = None
+        try:
+            data = json.loads(urlopen(r).read())
+        except Exception as e:
+            pass
+        return data
 
     def get_digest(self, repository, reference):
         manifest = self.get_manifest(repository, reference)
-        return manifest["config"]["digest"]
+        return manifest["config"]["digest"] if manifest else None
 
     def add_authorization_header(self, headers):
         headers["Authorization"] = "JWT " + self.access_token
