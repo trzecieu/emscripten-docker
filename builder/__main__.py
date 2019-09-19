@@ -480,13 +480,15 @@ def set_latest(args):
         digest_latest = registry.get_digest(repo, "latest")
         digest_recent = registry.get_digest(repo, tag)
 
-        if digest_latest != digest_recent or args.force:
-            subprocess.call([f"docker pull {repo}:{tag}"], shell=True)
-            subprocess.call([f"docker tag {repo}:{tag} {repo}:latest"], shell=True)
-            subprocess.call([f"docker push {repo}:latest"], shell=True)
-            log(f"[{repo}]: Set latest to: {tag}", True)
-        else:
+        if digest_latest == digest_recent and not args.force:
             log(f"[{repo}]: Tag 'latest' already points at: {tag}", True)
+            continue
+
+        # Update 'latest' tag and descriptions
+        subprocess.call([f"docker pull {repo}:{tag}"], shell=True)
+        subprocess.call([f"docker tag {repo}:{tag} {repo}:latest"], shell=True)
+        subprocess.call([f"docker push {repo}:latest"], shell=True)
+        log(f"[{repo}]: Set latest to: {tag}", True)
 
         # Update description
         description_short = config["images"][index_image_name(repo)]["short"]
