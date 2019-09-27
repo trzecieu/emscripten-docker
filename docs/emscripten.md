@@ -70,7 +70,7 @@ Teardown of compilation command:
 ## Extending this image
 If you would like to extend this image you have two choices:
 ### Extend with keeping base image
-An example how to derive from base image and keep linux base container you can find here : [trzeci/emscripten/Dockerfile](https://github.com/trzecieu/emscripten-docker/docker/trzeci/emscripten/Dockerfile).
+An example how to derive from base image and keep linux base container you can find here : [trzeci/emscripten/Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten/Dockerfile).
 
 All what you need is:
 ```Dockerfile
@@ -82,7 +82,7 @@ RUN ...
 This way you inherit all settings of environment that are coming with this image and entrypoiont.
 
 ### Extend with changing base image
-An example how to derive from base image and switch linux base container you can find here - [trzeci/emscripten-ubuntu/Dockerfile](https://github.com/trzecieu/emscripten-docker/docker/trzeci/emscripten-ubuntu/Dockerfile).
+An example how to derive from base image and switch linux base container you can find here - [trzeci/emscripten-ubuntu/Dockerfile](https://github.com/trzecieu/emscripten-docker/blob/master/docker/trzeci/emscripten-ubuntu/Dockerfile).
 
 An example that uses Docker multi-stage build:
 ```dockerfile
