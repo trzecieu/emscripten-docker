@@ -4,7 +4,7 @@ FROM debian:stretch AS stage_build
 
 # ATM 1.38.40+ is supported, older will fail with missing /b/s/w/ir/k/install/fastcomp/bin/llc
 ARG EMSCRIPTEN_VERSION=1.38.43
-ARG EMSCRIPTEN_SDK=${EMSCRIPTEN_VERSION}
+ARG EMSCRIPTEN_SDK=${EMSCRIPTEN_VERSION}-fastcomp
 ARG EMSDK_CHANGESET=master
 
 # ------------------------------------------------------------------------------
