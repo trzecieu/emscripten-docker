@@ -205,6 +205,7 @@ ENV PATH="${EMSDK}:${EMSDK}/fastcomp/bin:${EMSDK}/emscripten/sdk:${EMSDK}/llvm/c
 # Use entrypoint that's coming from emscripten-slim image. It sets all required system paths and variables
 ENTRYPOINT ["/emsdk_portable/entrypoint"]
 
+WORKDIR /src
 
 # ------------------------------------------------------------------------------
 
