@@ -1,4 +1,4 @@
-FROM debian:stretch AS stage_build
+FROM debian:buster AS stage_build
 
 # ------------------------------ ABOUT THIS IMAGE  -----------------------------
 # This Dockerfile has two major sections:
@@ -44,12 +44,18 @@ RUN echo "## Update and install packages" \
         python-pip \
 &&  echo "## Done"
 
-RUN  echo "## Installing CMake" \
-    &&  wget https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -q \
-    &&  mkdir /opt/cmake \
-    &&  printf "y\nn\n" | sh cmake-3.6.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
-    &&  ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
-&&  echo "## Done"
+
+RUN	echo "## Installing CMake" \
+    &&	wget https://cmake.org/files/v3.14/cmake-3.14.3-Linux-x86_64.sh -q \
+    &&	mkdir /opt/cmake \
+    &&	printf "y\nn\n" | sh cmake-3.14.3-Linux-x86_64.sh --prefix=/opt/cmake > /dev/null \
+    &&		rm -fr cmake*.sh /opt/cmake/doc \
+    &&		rm -fr /opt/cmake/bin/cmake-gui \
+    &&		rm -fr /opt/cmake/bin/ccmake \
+    &&		rm -fr /opt/cmake/bin/cpack \
+    &&	ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
+    &&	ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
+
 
 RUN  echo "## Get EMSDK" \
     &&  git clone https://github.com/emscripten-core/emsdk.git ${EMSDK} && cd ${EMSDK} && git reset --hard ${EMSDK_CHANGESET} \
