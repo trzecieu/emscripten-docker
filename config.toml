@@ -56,7 +56,7 @@ sdk_ignored= [
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
-        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "embuilder.py build zlib",
         "node --version",
@@ -94,7 +94,7 @@ sdk_ignored= [
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
-        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "embuilder.py build zlib",
         "node --version",
@@ -131,7 +131,7 @@ sdk_ignored= [
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
-        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "embuilder.py build zlib",
         "node --version",
@@ -169,7 +169,7 @@ sdk_ignored= [
     ]
     tests= [
         "emcc test.cpp -o test.js -s WASM=0 && node test.js",
-        "emcc test.cpp -o test.js -s WASM=0 --closure 1 && node test.js",
+        "emcc test.cpp -o test.js -s WASM=0 --closure 0 && node test.js",
         "emcc test.cpp -o test.js -s WASM=1 && node test.js",
         "embuilder.py build zlib",
         "node --version",
