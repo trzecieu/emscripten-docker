@@ -16,7 +16,7 @@ sdk_ignored= [
 # ------------------------------------------------------------------------------
 
 [[images]]
-    enabled=true
+    enabled=false
     name="trzeci/emscripten-slim"
     source="docker/trzeci/emscripten-slim"
     build_tag="{namespace}/{project}:sdk-tag-{version}-64bit" # other images rely on that name
@@ -43,7 +43,7 @@ sdk_ignored= [
 # ------------------------------------------------------------------------------
 
 [[images]]
-    enabled=true
+    enabled=false
     name="trzeci/emscripten"
     source="docker/trzeci/emscripten"
     build_tag="{namespace}/{project}:sdk-tag-{version}-64bit"
@@ -80,7 +80,7 @@ sdk_ignored= [
 # ------------------------------------------------------------------------------
 
 [[images]]
-    enabled=true
+    enabled=false
     name="trzeci/emscripten-ubuntu"
     source="docker/trzeci/emscripten-ubuntu"
     build_tag="{namespace}/{project}:{version}"
