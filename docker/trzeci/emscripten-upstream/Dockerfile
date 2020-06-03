@@ -1,4 +1,4 @@
-FROM debian:stretch AS stage_build
+FROM debian:buster AS stage_build
 
 # ------------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ ENV EM_PORTS ${EM_DATA}/ports
 RUN echo "## Start building" \
     \
 &&	echo "## Update and install packages" \
-    &&	apt-get -qq -y update \
+    &&  apt-get -qq -y update \
     # mitigate problem with create symlink to man
     &&  mkdir -p /usr/share/man/man1/ \
     &&  apt-get -qq install -y --no-install-recommends \

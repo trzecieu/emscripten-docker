@@ -209,6 +209,7 @@ class EmscriptenTester:
                     cmd += user
                     cmd += [ "-v", "{}:/src".format(volume) ]
                     cmd += [ "-w", "/src" ]
+                    cmd += [ "--network", "host"]
                     cmd += [ "-u", "emscripten" ]
                     cmd += [ id ]
                     cmd += [ "bash", "-c" ]
@@ -564,7 +565,10 @@ def main():
     parser_set_latest.set_defaults(function=set_latest)
 
     args = parser.parse_args()
-    args.function(args)
+    if "function" in args:
+        args.function(args)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()

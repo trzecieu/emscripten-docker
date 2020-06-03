@@ -50,6 +50,7 @@ class DockerHelper:
         log_handler = log_handler or mock_log_handler
         with open(log_file, "w") as f:
             cmd = ["docker", "build"]
+            cmd += ["--network", "host"]
             cmd += ["--no-cache"] if no_cache else []
             cmd += ["-t", tag]
             cmd += [f"--build-arg={k}={v}" for k, v in args.items()]
