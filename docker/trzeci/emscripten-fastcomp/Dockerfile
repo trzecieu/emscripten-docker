@@ -154,6 +154,20 @@ RUN echo "## Pre-populate cache" \
     &&  cd / \
     &&  rm -fr /tmp/emscripten_test \
     \
+    # use embuilder for some common cases
+    &&  embuilder.py build --lto \
+        libc \
+        libc_rt_wasm \
+        libc-wasm \
+        libc++ \
+        libc++-noexcept \
+        libc++abi-noexcept \
+        libcompiler_rt \
+        libdlmalloc \
+        libdlmalloc-debug \
+        libpthread_stub \
+        libsockets \
+    \
     # some files were created, and we need to make sure that those can be accessed by non-root people
     &&  chmod -R 777 ${EM_DATA} \
     \
