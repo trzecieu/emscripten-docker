@@ -13,13 +13,6 @@ def mock_log_handler(line):
 
 class DockerHelper:
     @staticmethod
-    def pushed_tags(registry, repo):
-        response = urlopen(f"https://{registry}/v1/repositories/{repo}/tags")
-        raw = response.read().decode()
-        data = json.loads(raw)
-        return list(map(lambda x: str(x["name"]), data))
-
-    @staticmethod
     def decompose_image_id(image_id):
         print(image_id)
         project, tag = image_id.split(":")
@@ -27,8 +20,10 @@ class DockerHelper:
         return (project, tag, version)
 
     @staticmethod
-    def push_image(image):
+    def push_image(image, dry=False):
         print(f"Pushing: {image}")
+        if dry: return 0
+
         for i in repeat(None, 3):
             if not subprocess.call(["docker", "push", image]):
                 return 0
@@ -68,6 +63,13 @@ class DockerHelper:
         return -1
 
 class DockerRegistry:
+    @staticmethod
+    def pushed_tags(registry, repo):
+        response = urlopen(f"https://{registry}/v1/repositories/{repo}/tags")
+        raw = response.read().decode()
+        data = json.loads(raw)
+        return list(map(lambda x: str(x["name"]), data))
+
     def __init__(self):
         pass
 

@@ -4,7 +4,6 @@ import subprocess
 import datetime
 import time
 import os
-import pwd
 import re
 import copy
 
@@ -31,6 +30,15 @@ ROOT = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__))
 
 config = toml.load(open("config.toml", "r"))
 
+
+def get_username():
+    try:
+        import pwd
+        return pwd.getpwuid(os.getuid())[0]
+    except:
+        return os.getlogin()
+    return
+
 def format_values(sth, mapping):
     def handle_object(obj):
         for k, v in obj.items():
@@ -56,20 +64,27 @@ def index_image_name(name):
             return i
     return -1
 
-def get_variants():
-    return list(map(lambda x: x["name"], filter(lambda x: x["enabled"], config["images"])))
+def image_by_name(name):
+    for i, v in enumerate(config["images"]):
+        if v["name"] == name:
+            return v
+    return None
+
+def get_variants(only_enabled=True):
+    return list(map(lambda x: x["name"], filter(lambda x: x["enabled"] or not only_enabled, config["images"])))
 
 class FakeDict(dict):
+    """returns {key} if key is not found"""
     def __getitem__(self, key):
         if not self.__contains__(key):
             return "{" + key + "}"
         return super().__getitem__(key)
 
 def get_build_description(variant, registries, emsdk_cs="master"):
-    index = index_image_name(variant.name)
-    if index < 0: return None
+    image = image_by_name(variant.name)
+    if not image: return None
 
-    template = copy.deepcopy(config["images"][index])
+    template = copy.deepcopy(image)
     tags = []
     for registry in registries:
         for tag in template["tags"]:
@@ -95,13 +110,18 @@ def log(text, console=False):
 def sort_variants(x, y):
     return index_image_name(x.name) - index_image_name(y.name)
 
-def version_compare(x, y):
+def cmp_semver(x, y):
     a = 1 if is_version_at_least(x, y) else 0
     b = 1 if is_version_at_least(y, x) else 0
     return a - b
 
-def cmp_name_versions(x, y):
-    return version_compare(x.name, y.name)
+def cmp_semver_tag(x, y):
+    """ compare versions of x.name """
+    return cmp_semver(x.name, y.name)
+
+def cmp_semver_version(x, y):
+    """ compare versions of x["version"] """
+    return cmp_semver(x["version"], y["version"])
 
 def is_version_at_least(ver, target):
     ver = map(lambda x: int(x) if x.isdigit() else 0, ver.split('.'))
@@ -156,10 +176,10 @@ class EMVariant:
     def __eq__(self, other):
         return self.name == other.name and self.version == other.version
 
-
 class EMHelper:
     @staticmethod
     def get_sdk_name_tag(tag):
+        """ Return elaborated tag name, like sdk-tag-1.23.1-64bit"""
         return "sdk-tag-{tag}-64bit".format(tag=tag)
 
     @staticmethod
@@ -178,7 +198,7 @@ class EMHelper:
             except:
                 pass
         result = list(map(lambda x: str(x), all_tags))
-        result = sorted(result, key=cmp_to_key(version_compare), reverse=True)
+        result = sorted(result, key=cmp_to_key(cmp_semver), reverse=True)
         result = list(filter(lambda x: x not in config["sdk_ignored"], result))
         return result
 
@@ -347,14 +367,15 @@ def get_variants_to_compile(sdks, incoming=False, master=False, branches=False, 
 
     # compile every release that isn't pushed to docker registry
     if releases:
-        # List of pushed tags to Docker, in format: ['sdk-master-32bit', 'sdk-tag-1.38.8-64bit', ...]
-        docker_tags = DockerHelper.pushed_tags(DOCKER_REGISTRY, DOCKER_REPO)
+        # List of pushed tags to Docker, in format: [{"version": "1.21.33", "tag":"optional-1.21.33-opt"}, ...]
+        docker_tags = get_meaningfull_pushed_tags(DOCKER_REGISTRY, DOCKER_REPO)
+        # ["1.21.33", ...]
+        docker_tags = list(map(lambda x: x["version"], docker_tags))
         # ["1.23.4", ...]
         emscripten_tags = EMHelper.get_emscripten_tags(config["sdk_min"])
-        for v in emscripten_tags:
-            # TODO: here needs to be updated, once new tagging schema is in place
-            if EMHelper.get_sdk_name_tag(v) not in docker_tags:
-                versions_to_compile.add(v)
+        missing_tags = list(filter(lambda em_tag: em_tag not in docker_tags, emscripten_tags))
+
+        versions_to_compile.update(missing_tags)
 
     # if tag was given explicitly, then use it
     for sth in sdks:
@@ -387,7 +408,7 @@ def create_compilation_sets(variants):
         sets[variant.version].variants.append(variant)
 
     result = list(sets.values())
-    result = sorted(result, key=cmp_to_key(cmp_name_versions), reverse=False)
+    result = sorted(result, key=cmp_to_key(cmp_semver_tag), reverse=False)
 
     for r in result:
         r.variants = list(sorted(r.variants, key=cmp_to_key(sort_variants), reverse=False))
@@ -467,17 +488,27 @@ def list_installed_packages(image):
         return f"|package|version|\n|---|---|\n{output}"
     return ""
 
+def get_meaningfull_pushed_tags(registry, repo):
+    """ Only return those tags that are matching 'version_matcher' config. Sorted"""
+    image = image_by_name(repo)
+    docker_tags = DockerRegistry.pushed_tags(registry, repo)
+    docker_tags = list(map(lambda x: { "version": x.groups()[0], "tag": x.string},
+        filter(lambda x: x,
+            map(lambda x: re.match(image["version_matcher"] , x),
+                docker_tags
+            )
+        )
+    ))
+    docker_tags = sorted(docker_tags, key=cmp_to_key(cmp_semver_version), reverse=True)
+    return docker_tags
+
 def set_latest(args):
     registry = DockerRegistry()
     registry.login()
-    for repo in get_variants():
-        docker_tags = DockerHelper.pushed_tags(DOCKER_REGISTRY, repo)
-        docker_tags = list(set(filter(lambda x: re.match(r'sdk-tag-(\d+\.\d+\.\d+)-64bit', x), docker_tags)))
-        docker_tags = list(map(lambda x: re.match(r'.+(\d+\.\d+\.\d+).+', x).groups()[0], docker_tags))
-        docker_tags = sorted(docker_tags, key=cmp_to_key(version_compare), reverse=True)
+    for repo in get_variants(only_enabled=False):
+        docker_tags = get_meaningfull_pushed_tags(DOCKER_REGISTRY, repo)
         if len(docker_tags) < 0: continue
-
-        tag = f"sdk-tag-{docker_tags[0]}-64bit"
+        tag = docker_tags[0]["tag"]
         digest_latest = registry.get_digest(repo, "latest")
         digest_recent = registry.get_digest(repo, tag)
 
@@ -488,12 +519,13 @@ def set_latest(args):
         # Update 'latest' tag and descriptions
         subprocess.call([f"docker pull {repo}:{tag}"], shell=True)
         subprocess.call([f"docker tag {repo}:{tag} {repo}:latest"], shell=True)
-        subprocess.call([f"docker push {repo}:latest"], shell=True)
+        DockerHelper.push_image(f"{repo}:latest", args.dry)
         log(f"[{repo}]: Set latest to: {tag}", True)
 
         # Update description
-        description_short = config["images"][index_image_name(repo)]["short"]
-        long_from_file = config["images"][index_image_name(repo)]["long_from_file"]
+        image = image_by_name(repo)
+        description_short = image["short"]
+        long_from_file = image["long_from_file"]
 
         description_long = ""
         with open(long_from_file, "r") as f: description_long = f.read()
@@ -501,13 +533,19 @@ def set_latest(args):
 
         properties = {
             "installed_packages": list_installed_packages(f"{repo}:{tag}"),
-            "footer": f"-----\nGenerated by {pwd.getpwuid(os.getuid())[0]}: " + datetime.datetime.now().isoformat(),
+            "footer": f"-----\nGenerated by {get_username()}: " + datetime.datetime.now().isoformat(),
         }
 
         for k, v in properties.items():
             description_long = description_long.replace(f"<!-- {k} -->", v)
 
-        registry.update_description(repo, description_short, description_long)
+        if args.dry:
+            log("Would update description to:")
+            log("Short: " + description_short)
+            log("Long:")
+            log(description_long)
+        else:
+            registry.update_description(repo, description_short, description_long)
 
 
 def push(args):
@@ -562,6 +600,7 @@ def main():
 
     parser_set_latest = subparsers.add_parser("set_latest", help="Automatically sets the 'latest' tag")
     parser_set_latest.add_argument("--force", action="store_true", help="Ignore comparing digests")
+    parser_set_latest.add_argument("--dry", action="store_true", help="No changes in registry is performend")
     parser_set_latest.set_defaults(function=set_latest)
 
     args = parser.parse_args()
