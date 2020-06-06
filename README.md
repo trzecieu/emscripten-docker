@@ -43,6 +43,9 @@ command:
 * https://github.com/google/neuroglancer
 * https://github.com/finos/perspective
 * https://blog.qt.io/blog/2019/03/05/using-docker-test-qt-webassembly/
+* https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html
+* https://github.com/kalwalt/jsartoolkitNFT
+* https://github.com/iPlug2/iPlug2/wiki/Build-a-WAM-project-using-Emscripten-and-Docker
 * And many more that I'm proud of each!
 
 
