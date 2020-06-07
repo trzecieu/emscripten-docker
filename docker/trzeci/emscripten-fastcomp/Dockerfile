@@ -157,12 +157,10 @@ RUN echo "## Pre-populate cache" \
     # use embuilder for some common cases
     &&  embuilder.py build --lto \
         libc \
-        libc_rt_wasm \
         libc-wasm \
         libc++ \
         libc++-noexcept \
         libc++abi-noexcept \
-        libcompiler_rt \
         libdlmalloc \
         libdlmalloc-debug \
         libpthread_stub \

@@ -28,7 +28,7 @@ Used templates:
 |--|--|
 |`latest`| The default version (aka `latest`) points at [the latest tag release](https://github.com/emscripten-core/emscripten/releases) by Emscripten.|
 |`{VERSION}-upstream`| Then newest and greatest version of Emscripten, based on Clang10. |
-|`{VERSION}-fastcomp`| Legacy version of Emscripten that's based on modified Clang 6. |
+|`{VERSION}-fastcomp`| Legacy version of Emscripten that's based on modified Clang 6. Soon to be [deprecated](https://github.com/emscripten-core/emscripten/pull/11280). |
 |`{VERSION}-ubuntu`| Alias to version stored in [trzeci/emscripten-ubuntu](https://hub.docker.com/r/trzeci/emscripten-ubuntu)<br />Based on custom fastcomp build|
 |`{VERSION}-slim`| **LEGACY**: Alias to version stored in [trzeci/emscripten-slim](https://hub.docker.com/r/trzeci/emscripten-slim)<br />Based on custom fastcomp build that is extra size optimized|
 |`{VERSION}`| **LEGACY**: Based on [trzeci/emscripten-slim](https://hub.docker.com/r/trzeci/emscripten-slim) - custom fastcomp build|
