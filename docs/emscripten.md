@@ -12,7 +12,7 @@ Each tag was build from [Dockerfile](https://github.com/trzecieu/emscripten-dock
 
 |packages|version|
 |---|---|
-|`cmake`|**3.14.3**|
+|`cmake`|**3.18.3**|
 
 ### System packages:
 
